@@ -1,0 +1,252 @@
+			  Freyja Calculator
+			HP-45A-like Calculator
+
+DESIGN
+
+This calculator is a non-programmable, scientific calculator, roughly
+equivalent to an HP-45A or a 41C with some functions missing.  It
+offers some extra functions (e.g., binary math).  The internal
+arithmetic is done using the C language "double" arithmetic supplied
+with your C compiler.
+
+This documentation assumes that you already know all about RPN
+calculators in general and the HP calculators in particular.
+
+
+
+ENTERING NUMBERS
+
+Numbers look pretty much as you would expect.
+
+- Real numbers can consist of the digits 0-9, a radix mark ('.' or
+','), digit separators (the non-radix mark '.' or ','), an exponent
+character ('e' or 'E'), and an exponent.  Use the '~' or '`'
+characters (or F9) for entering negative numbers or exponents.
+
+- Binary numbers start with a # sign, then contain the digits 0-9,
+a-f, or A-F.  They are interpreted and displayed according to the
+current default base.  They will also be masked to the current word
+size.
+
+In all cases, number termination is by means of a space, ^G, ^M, ^J,
+^[, $, %, *, +, -, or / character.
+
+Some operators include the above termination characters as part of
+their names (e.g., "1/X").  You can enter these by starting the
+command with a single quote ("'").  Doing so disables the "immediate
+action" of the %, *, +, -, /, `, and ~ characters.
+
+Numbers are converted between real and binary as needed (and expected)
+by the operators.  There are no illegal combinations, although there
+may be illegal values (e.g., square root of a negative number).
+
+
+
+DISPLAY
+
+Numbers are displayed according to their type and the current display
+settings.  These settings are:
+
+- Only Std display format is supported for now.  There are two other
+settings:
+
+	radix mark		. or ,
+	digit separators shown	Y or N
+	 (if Y, the separator is the one of , or . that is not the current
+	 radix mark)
+
+- Binary numbers: always displayed in the current base #XXXY, where Y
+is 'b', 'o', 'd', or 'h', designating Bin, Oct, Dec, and Hex modes.
+
+
+
+STACK LIFT
+
+The calculator handles stack lift more like an HP-28C/S or 48S/SX
+than a "normal" HP.  Number (and command name entry) is handled in a
+separate place and not the X register.  The entered number (or
+command) can be edited arbitrarily before it is terminated by a
+closing function that is actually executed.  Hence, the concept of
+stack lift does not play a very important role.  All operations leave
+stack lift enabled except for:
+
+	CLX
+	ENTER^ (or T)
+
+No operations are neutral.
+
+
+COMMANDS
+
+^G	Exit calculator w/no action.
+^H	Delete the preceeding character or clear X if no preceeding character.
+^J	Exit calculator, inserting X into the buffer at the point.  Leave
+	the mark at the start of the number and the point at the start.
+^M	Finish the current number or operator.
+^[	Exit calculator w/no action.
+SP	Finish the current number or operator.
+$	Return to the editor.
+%	Percentage.
+'	Start a quoted command.
+*	Multiplication.
++	Addition.
+-	Subtraction.
+/	Division.
+?	Help.
+`	CHS or NEG.
+~	CHS or NEG.
+^?	Delete the preceeding character or clear X if no preceeding character.
+
+F1	Help.
+F9	CHS or NEG.
+F10	Exit Freyja.
+Alt-B	Last X, immediate execute.
+Alt-C	X<>Y, immediate execute.
+Alt-L	CHS, immediate execute.
+Alt-M	RCL.
+Alt-N	STO.
+Alt-V	RDN, immediate execute.
+Alt-X	1/X, immediate execute.
+Alt-Z	SQRT, immediate execute.
+
+
+COMMAND LIST
+
+These commands are all executed by typing their name, then completing
+them with a space, ^M, or ^J.  If a space is used as the terminator,
+it does not do an implied Enter.
+
+	%%%	register designator:
+			#		numeric
+			X,Y,Z,T,L	stack
+			A		alpha
+			\GS,~		summation
+			.%%%		indirect
+			IND%%%		indirect
+	###	number
+	&&&	label:
+			#		numeric
+			"string"	alpha label
+			.###		indirect
+	@@@	buffer name
+
+name		does
+
+%		percent
+%CH		percent change
+%TOT		percent of total
+*		multiply
++		add
+-		subtract
+/		divide
+1/X		inverse (not typable: must use INV)
+<%%%		recall
+>%%%		store
+AND		bitwise and
+B		set binary mode
+CF###		clear flag
+CLRG		clear registers
+CLST		clear stack
+CLX		clear x
+D		set decimal mode
+DEFAULT		restore default settings
+DIGSEPOFF	set the digit separator mark to not displayed
+DIGSEPON	set the digit separator mark to displayed
+ENTER^		enter
+FACT		factorial
+H		set hexadecimal mode
+HELP		help
+INV		inverse
+L		recall last x
+LASTX		recall last x
+MEMVIEW		view interpreted calculator memory in %calc% buffer
+MOD		modulus
+NEG		negate
+NOT		bitwise not
+NULL		no op
+O		set octal mode
+OR		bitwise or
+R		roll down
+RADIX,		set the radix mark to ,
+RADIX.		set the radix mark to .
+RCL%%%		recall (try rcl~78)
+RDN		roll down
+R^		roll up
+S		swap: x<>y
+SF###		set flag
+SQRT		square root
+ST%%%		store
+STO%%%		store
+T		enter
+WSIZE		set the word size
+WSIZE?		get the word size
+X<>%%%		swap with
+XEQ@@@		switches input to the specified buffer (sort of like
+		executing a program)
+XOR		bitwise xor
+XRND		takes an argument from the stack (small integer) and
+		rounds the number to that number of decimal places
+X^2		square
+\GD%		delta %
+
+
+
+CALCUALTOR-RELATED FREYJA COMMANDS
+
+^[ ^A	Mark the current number (mark to start, point to end).
+^[ ^B	Move backward one number.
+^[ ^E	Mark the current number and enter it into the calculator.
+^[ ^F	Move forward one number.
+^[ ^M	Insert a printed copy of the number in the X register into the
+	buffer.  If an argument is supplied, do ^[ ^A ^W first.
+^[ ^U	Invoke the calculator.
+^[  ^]	Load the program specified by the argument into the keyboard macro.
+
+
+
+SYSTEM BUFFERS USED
+
+%calc%		miscellaneous calculator output (e.g., status dump)
+
+
+
+FREYJA-LOCAL FLAGS
+
+start	size	default	use
+
+65	8	BINSIZE	word size for binary integers
+
+73	2	hex	binary number mode:
+
+	flag	74	73
+		0	0	decimal 
+		0	1	octal
+		1	0	binary
+		1	1	hexadecimal
+
+
+
+PROGRAMS
+
+A program is created by means of the ^X ( and ^X ) commands.  This
+program can be saved the ^[ ^] command.  This command inserts the
+current keyboard macro contents at the point.  You can then use normal
+editing commands to manpulate and save it.
+
+The typical sequence is:
+
+	- create a keyboard macro
+	- create an empty buffer
+	- give the ^[ ^] command
+	- save the buffer
+
+You now have your program saved.  You can execute it in one of two ways:
+
+1:	- find the file with your program
+	- XEQ<name>
+
+2:	- find the file with your program
+	- give the ^U ^[ ^] command to copy the buffer to the keyboard macro
+	- execute it with ^]
+
+The second method allows you to give a repeat count.

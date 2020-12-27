@@ -1,0 +1,203 @@
+	   Installation Instructions for HP100LX ("Cougar")
+		   System Manager Compliant Version
+
+Code Letter: C
+
+Features:
+
+The sysmgr version can do anything that the IBM PC version can do. 
+Mostly.  In addition:
+
+	- It is fully system-manager compliant.
+	- Application manager calls are used for keyboard input.
+	- The calculator is not present (the Turbo C floating point libraries
+	use and interrupt in their interface; such use conflicts with sytem
+	manage compliance guidelines).
+	- The execute system command function is present.  However, some
+	MS/DOS commands may invisibly trash your system.  It will tend to
+	work best if Freyja is the only application open.
+	- The search path for FREYAJ.RI and the help files is forced to
+	include C:\_DAT.
+	- Several resource file settings allow you to make the program
+	behave a lot like MEMO.
+	- It uses the HP100LX character set.
+	- The screen handling is set for the HP100's modes
+	- The MENU key works.
+	- The cursor is set to a block cursor.
+	- Many resource file settings are adjusted for the 100LX.
+
+
+------------------------------------------------------------
+MEMO:
+
+Freyja includes much of the functionality of the built-in MEMO
+program. This means that if MEMO can do it, so can Freyja.  However,
+the commands may be a little different.  In particular, you can make
+the word-motion and Home/End key commands work like MEMO's by changing
+these freyja.res file options to:
+
+	WORDEND		"N"
+	HOMEEND		"Y"
+
+The menus and function keys are organized differently.  No, I'm not
+going to try to list the differences.
+
+Of course, Freyja can do many things that MEMO cannot.
+
+Many people simply put Freyja on the MEMO key.
+
+Freyja can read and write MEMO's "ASCII" files, but not MEMO's
+"formatted" form.  When reading and writing MEMO's "ASCII" files, be
+sure that Freyjs is in Wrap mode.
+
+
+------------------------------------------------------------
+ZOOM Modes
+
+Freyja supports three zoom modes.  The ^X + command (and ZOOM key) 
+changes the font among these choices:
+
+	argument	rows x columns
+
+	2		25 x 80
+	80		18 x 64
+	84		16 x 40
+
+With no argument, the command cycles to the next one.  With an
+argument, the command selects that font.
+
+
+------------------------------------------------------------
+Clipboard:
+
+The program will copy, cut, and paste to and from the clipboard.  Note
+that the program distinguishes between the clipboard and the kill
+buffer: they are _not_ synonymous nor are any automatic conversions
+between them performed.
+
+Commands that use the kill buffer:
+
+	^W	cut
+	^[ W	copy
+	^Y	paste
+	all deletion commands
+	Edit menu
+
+Commands that use the clipboard:
+
+	CUT key
+	COPY key
+	PASTE key
+	Ctrl-F2	copy
+	Ctrl-F3	cut
+	Ctrl-F4	paste
+	Clip menu
+
+You may have to adjust the size of the clipboard in SETUP if you are
+cutting and pasting large items.
+
+
+------------------------------------------------------------
+Printing:
+
+Freyja prints to the PRN device (as configured into the .res file: see
+the PRINTER* tables).  The program does _not_ perform flow control in
+any fashion, nor does it initialize the port in any way.  That said, I
+believe that MS/DOS _does_ do XON/XOFF flow control with the PRN
+device.
+
+Printing on the HP100LX can therefore be somewhat tricky: you should
+use your favorite method to configure and power on the serial port. 
+
+
+------------------------------------------------------------
+Installation:
+
+1) Obtain an IBM PC version (see ibmpc.doc).  Note that all *.EXM and
+*.RI files are included with the distribution, so that you don't have
+to compile anything if you just want to run the off-the-shelf
+versions.
+
+You can run any of the .EXE files on the HP100LX.  They all run under
+MS/DOS mode.  These instructions only discuss the .EXM files.
+
+2) Copy the freyja.exm file and the memutil.exm file to somewhere
+useful in the HP100LX, quite probably C:\_DAT.
+
+You can install the documentation if you like.
+
+3) If you want to run a standard resource file, do:
+
+	copy insys100.ri c:\_dat\freyja.ri
+
+If you want to make any changes in the resource file, then you will
+want to review these files:
+
+	*.res
+	resource.doc
+	thorres.doc
+
+The mechanics of the change are:
+
+	<edit *.res and make the changes>
+	thorres -c 850 -l en -f c freyja.res -h frres.h
+	copy freyja.ri c:\_dat\freyja.ri
+
+Notes:
+
+	- replace the "en" with "dk" if you are using Danish messages
+	- replace the "850" with "437" if you are using code page 437
+	- replace the "850" with "852" if you are using code page 852
+	- replace the "850" with "865" if you are using code page 865
+
+4) The minimum system RAM required is 352K.  This number assumes a 40K
+swap area, and no other applications open or other uses of memory. 
+Actual requirements are less, but this is the smallest size that you
+can set system RAM to.
+
+	>>>>> This number is for Version 2.1.  It was not re-checked
+	for Version 2.2, but the new number should be very close
+	to this one.
+
+5) You probably want to install the program in the application
+manager.  If so, follow the standard directions in Chapter 5 of the
+100LX manual.  Also:
+
+	- The file freyja.icn in the distribution is an icon for Freyja.
+
+	- The file memutil.icn in the distribution is an icon for MemUtil.
+
+You can put these programs (or any others) on any hot key you like. 
+However, the application manager will only let you use a few.  To use
+other keys:
+
+	- ensure that there is no entry defined in the application manager
+	- create an apname.lst file with the right path, key, and name
+	  (see item 5 in insys95.doc)
+	- start the application manager
+
+The entry will be initialized correctly.  Select and edit it to set
+the icon.  Leave the apname.lst file around in case the application
+manager gets any funny ideas...
+
+6) The program can't display error messages until it gets going.  If
+it can't get started, it might be for one of these reasons:
+
+	- it cannot find or read the resource file (freyja.ri not in
+	C:\_DAT or in the search path)
+
+	- it cannot allocate the swap area (too large or Lotus 1-2-3 running)
+
+	- it cannot initialize the terminal (broken or wrong freyja.ri file)
+
+7) If you want to recompile the program, you will need to edit the
+initial symbol definition blocks in the makefile (this sounds more
+complicated than it is).  Comment out the ones for the IBM PC version
+and remove the comments from the ones for the system manager version. 
+Then do:
+
+	erase f*.obj
+	erase smjaguar.obj
+
+and recompile everything.  Reverse this process -- including the erase
+f*.obj -- when switching back to the IBM PC version.

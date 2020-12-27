@@ -1,0 +1,199 @@
+			   Freyja Tutorial
+
+This document will help you get started in learning how to use
+Freyja.  The best way to use it is to read it using Freyja.  You can
+do this by giving the command:
+
+	freyja ftutoria.doc
+
+You can also bring this document up by starting Freyja and typing:
+
+	^X ^F ftutoria.doc ^M (or Enter)
+
+Most Freyja commands are given using the Control key.  This key is
+sometimes labelled Ctrl or Ctl.  This type of command will be written
+like this:
+
+	^#
+
+where "#" is replaced by the letter that is typed along with control
+key.  For example, ^V for Control and the "V" key.  Now type the ^V
+command.
+
+
+
+Good.  You are on the next screen.  The ^V command causes Freyja to
+move to the next screen of text.  Note that there is a little overlap
+between the screens.  From now on, just type this command whenever
+you finish reading a screen of text.
+
+The natural next step is to learn how to move backwards by a screen. 
+There are two ways for you to indicate this action to Freyja.  The
+first is to give the ^Z command.  Try it, then use ^V to come back.
+
+The ^Z command is specific to Freyja: other Emacs-type text editors
+do not use that command for this purpose.  Rather, the Emacs
+"standard" command for going back a screen is the ^[ V command.
+
+This command looks a little funny.  The ^[ means the Control and [
+keys.  While you can type it this way, this command is also available
+on most keyboards as the Escape key (sometimes labelled Esc), and we
+will use "Esc" to mean ^[.  Thus, you give the Esc V command by
+pressing AND RELEASING the Escape key, then pressing the V key (it
+doesn't matter whether you type an upper- or lower-case V).  Try it
+and come back here.  The commands that start with the Escape key (or
+are "prefixed" with the Escape key) are called "meta" commands.
+
+On MS/DOS computers, Freyja treats Alt-shifted characters the same as
+their corresponding meta commands.  On these computers, Freyja also
+supports the arrow and function keys.  This means that you can press
+Down Arrow to go down a line or PgDn to go down a screen.  See the
+Freyja command list for details.
+
+RECAP:
+
+	^V	moves forward one screen
+	^Z	moves backward one screen
+	Esc V	moves backward one screen
+	^L	recenter the screen
+	Esc ^L	completely rebuild the screen display from scratch
+
+
+Now that you can move by screens, how do you move in smaller amounts?
+
+			 ^P (*P*revious line)
+				|
+				|
+^B (*B*ackward character) -----   ----- ^F (*F*orward character)
+				|
+				|
+			   ^N (*N*ext line)
+
+Freyja commands are more-or-less mnemonic: the letter associated with
+the command indicates what it does.  Thus, we have B for backward and
+F for forward.  Try these commands for a while.
+
+You will notice when moving around that you can't move to anyplace
+that doesn't have text (for example, the blank lines between these
+paragraphs).  When going forward, you move from the end of a line to
+the start of the next line and vice-versa for moving backward.  When
+moving to the next or previous lines, the cursor "jumps" to the left
+edge of the screen then jumps back as you continue moving.
+
+Note that if you should move off of the top or bottom of the screen,
+the display is shifted automatically to keep your current position
+visible.
+
+You can move to the beginning or end of the line in one step by
+giving the ^A (beginning of line (well, B was taken)) and ^E (end of
+line) commands.  Note that if you keep giving the same commands, you
+don't keep moving.  Is this right?
+
+RECAP:
+
+	^F	move forward by character
+	^B	move backward by character
+	^N	move to the next line
+	^P	move to the previous line
+	^A	move to the start of the line
+	^E	move to the end of the line
+
+The next step up from characters is words.  You will notice a pattern
+right off:
+
+		       Esc A (start of sentence)
+				|
+				|
+   Esc B (*B*ackward word) -----   ----- Esc F (*F*orward word)
+				|
+				|
+		       Esc E (*E*nd of sentence)
+
+Try these.  Note that when moving by words, you are always left at the
+"far end" of the word.  (You can change this behavior if you like.
+See the RESOURCE FILE section in "freyja.doc".)  When moving by
+sentences, successive Esc A and Esc E commands move to successive
+sentence.  This is a little different than the ^A and ^E commands.
+
+We will finish off the moving-around commands with two other
+important ones:
+
+	Esc <	move to the beginning of the file
+	Esc >	move to the end of the file
+
+(The Home and End keys do these, too.)  Try all of the commands that
+you have learned so far (but try not to read ahead too much!).  Then
+come back here and keep going.
+
+
+MAKING CHANGES
+
+If you want to add text to what is already there, it couldn't be
+easier.  Just:
+
+	- move the cursor so that the *left edge* is at the place that
+	you want to add the text, and
+
+	- type the new text (no Control-shifting or Escape-prefixing)
+
+If you type a lot of text, you may notice that the end of the line
+"spills" off the right edge of the screen.  The text is still there,
+it just isn't visible.  If you want to see the text, just move there:
+
+	- position the cursor to the line of interest
+	- give the ^E command (not yet...!)
+	- when done, give the ^A command to come back
+
+Here is a long line to try it out on.  Now is the time for all good men to come to the aid of their country.
+
+(You can also give the ^X > and ^X < commands to move the screen
+right and left.  But that is telling.)
+
+You don't need to keep typing a return at the end of each line.  You
+can "fill" a paragraph in one swoop so that all the lines are a
+reasonable length with the Esc Q command.  You can also turn on "word
+wrap" with the ^X / comnmand.
+
+So adding text is easy, how about deleting text?
+
+You can delete text in many ways.  As many of these involve the ^H
+command, it is worth pointing out that this is also found as a "Back
+Space" or "BS" key (sometimes "Back Arrow") on many computers.  If
+your computer has a "Del" or "Delete" key, this also works (although
+it is a different character and written as ^?).
+
+(This ^? character is typed on MS/DOS computers by Ctrl + Back Arrow.
+On these computers, the Ctrl + Back Arrow command is supposed to
+delete the entire previous word and Freyja does this.)
+
+The basic deletion command are:
+
+	^H	delete back one character (analagous to ^B)
+	^D	delete forward one character (analagous to ^F)
+
+	Esc ^H	delete back one word (analagous to Esc B)
+	Esc D	delete forward one word (analagous to Esc F)
+
+You can also delete by lines or sentences:
+
+	^K	delete to the end of the line; if at the end of the
+		line, delete just the line separator
+	Esc K	delete forward one sentence (analagous to Esc E)
+	^X ^?	delete backard one sentence (analagous to Esc A)
+
+Try all of these (please be careful).  If you delete "too much," you
+can restore this file by giving the command:
+
+	^X ^R ^M (or Enter)
+
+then answering "Y" to the question.
+
+Those are the most often used commands.  At this point, the tutorial
+is over and you should go back to the "freyja.doc" file.  This file
+explains the rest of the concepts in Freyja.
+
+We will finish by explaining one last useful command:
+
+	^X ^C
+
+This command exits from Freyja.

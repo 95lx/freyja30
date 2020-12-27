@@ -1,0 +1,38 @@
+USAGE:
+
+thorabk [options] <from-file> <to-file>
+
+PURPOSE:
+
+This command converts HP95LX Appointment Book files to ASCII files.
+
+OPTIONS:
+
+Option names always start with a single dash ("-") and must be spelled
+exactly as shown but may be entered in upper, lower, or mixed case.
+No embedded spaces may be used in the option name.  Note that many
+options also have a "short" form.  If an option has a parameter, the
+parameter must be separated from the option name with one or more
+space or tab characters.  Option names or option name/parameter pairs
+may appear anywhere in the command line after the command name.
+
+	-verbose
+	-v
+	Shows the records as they are being processed.
+
+RESTRICTIONS:
+
+This program only converts one direction.  However, the output format
+is such that you should be able to convert them back.
+
+DEFAULTS:
+
+A from or to file named "-" designates standard input or output.
+
+FUNCTION:
+
+The format is obvious, I hope.  Dates are in ISO format (YYYY-MM-DD).
+
+AUTHOR:
+
+Copyright 1992,3 by Craig A. Finseth

@@ -1,0 +1,169 @@
+	      PARSE:  Configuration File Parsing Routine
+
+	   Copyright 1987,8,9,90,1,2,3 by Craig A. Finseth
+
+
+
+OVERVIEW
+
+The PARSE functions provide a standard interface and set of access
+routines for Unix-type configuration files (e.g., /etc/passwd).  The
+functions are programmable for a variety of different file formats.
+
+
+
+FUNCTIONS
+
+Note: Since the caller is responsible for allocating the input buffers
+and parse_data structures, these routines impose no limit on the
+number of files that may be accessed concurrently.
+
+
+int
+Parse_Open(struct parse_data *pptr, const char *fname);
+
+This function must be called first (except for Parse_A_String).  You
+pass in the address of a filled-in parse_data structure and a
+filename.  The routine opens the file (using fopen) and sets up for
+accessing it.  The function returns 0 if the open was successful or -1
+if there was an error.
+
+The parse_data structure includes these fields:
+
+	p_buffer	A pointer to the line buffer.  The buffer should
+			be 1 character longer than the longest line that
+			you would (un)reasonably expect.  If a line is
+			longer than this buffer, the excess data is
+			discarded.
+
+	p_length	The length of the buffer.
+
+	p_separator, p_comment, p_trim
+			These are described below.
+
+If the filename is "", standard input is used.
+
+
+void
+Parse_Close(struct parse_data *pptr);
+
+This function should be called when you are done reading the file.  If
+parse_line returned an error or zero, this function has been called
+for you.  However, calling it extra times won't hurt.
+
+
+int
+Parse_A_Line(struct parse_data *pptr, char (*tokens)[], int num_tokens);
+
+This function parses and returns one line of the configuration file.
+Blank lines and lines that contain only whitespace and comments are
+skipped.
+
+You pass in the address of a parse_data structure (the same one that
+you passed into Parse_Open), an array of pointers-to-characters, and
+the number of elements in the array.
+
+The function returns a negative number on error, 0 on end of file, or
+the number of elements filled in (always <= NUM_TOKENS).  The function
+also fills in up to NUM_TOKENS elements of TOKENS.  The ith element of
+TOKENS will contain a pointer to a NUL-terminated string that is the
+contents of the ith field in the line.
+
+If there are more than NUM_TOKEN fields in the line, all "leftover"
+fields are copied, unparsed, into the NUM_TOKEN'th entry in TOKENS
+(i.e., tokens[num_tokens - 1]).  In general, NUM_TOKENS should be one
+larger than you expect so that you can readily check for lines that
+have extra fields.
+
+The line is divided up into fields by characters specified by
+p_separator.  If p_separator is SP (space, 32 decimal), then any
+whitespace will serve to separate the fields.
+
+If p_trim is TRUE, whitespace will be trimmed off of the beginning and
+end (but not from the middle) of each field.  If p_trim is FALSE, no
+trimming is done.  If p_separator is set to SP, p_trim is forced to
+TRUE (if this wasn't done, the file will most likely parse into lots
+of empty fields).
+
+p_comment contains the character that introduces a comment.  All data
+from (and including) that character to the end of the line is treated
+as a comment and discarded.  If p_comment is set to NUL, comments
+checking is disabled.
+
+The returned tokens will always be in the supplied buffer.  Thus, you
+must either finish with one line before calling Parse_A_Line for the
+next, or copy the tokens to a separate buffer.
+
+
+int
+Parse_A_String(struct parse_data *pptr, char (*tokens)[], int num_tokens,
+	char *str);
+
+This function parses in a similar fashion to Parse_A_Line, but it
+takes its input from the supplied string instead of a file.
+Parse_Open need not be called before this routine is called, but the
+parse_data structure must be initialized as if Parse_Open were to be
+called.  In particular, the string is copied to the supplied buffer
+and any part of the string that does not fit into the buffer will not
+be parsed.
+
+
+char *
+Parse_File(struct parse_data *pptr);
+
+This function returns a pointer to the name of the file that is being
+parsed.
+
+
+int
+Parse_Get_Line(struct parse_data *pptr, char *buf, int bufsize);
+
+This function returns the next line, unparsed, from the input file.
+The line is returned into the supplied buffer.
+
+
+int
+Parse_Line(struct parse_data *pptr);
+
+This function returns the number of the last line that was read in
+with Parse_A_Line.
+
+
+EXAMPLE
+
+A typical program might look like this:
+
+#include "parse.h"
+#define FIELDS		5	/* number of expected fields */
+
+void
+function(void)
+	{
+	char buffer[PARSELENGTH];
+	char *tokens[FIELDS + 1];
+	char *fname = "/etc/passwd";
+	struct parse_data pd;
+	int amt;
+
+	pd.p_buffer = buffer;
+	pd.p_length = PARSELENGTH;
+	pd.p_separator = ':';
+	pd.p_comment = '#';
+	pd.p_trim = TRUE;
+
+	if (Parse_Open(&pd, fname) < 0) {
+		printf("Cannot open file '%s'.\n",fname);
+		return;
+		}
+	while ((amt = Parse_A_Line(&pd, tokens, FIELDS + 1)) > 0) {
+		if (amt == FIELDS + 1) {
+			printf("Extra fields ignored in line %d of file %s.\n",
+				Parse_Line(&pd), fname);
+			}
+		/* ...process the line... */
+		}
+	if (amt < 0)
+		printf("Read error on file %s on or after line %d.\n",
+			fname, Parse_Line(&pd));
+	Parse_Close(&pd);
+	}

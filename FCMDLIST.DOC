@@ -1,0 +1,949 @@
+			 Freyja Command List
+
+Unless otherwise specified, any argument is ignored and the command
+does not prompt.
+
+Regular Commands:
+
+
+^@	Place the mark at the point.
+
+^A	Move to the beginning of the current line.
+
+^B	Move backward one character.  With an argument, move backward
+	that many characters.
+
+^C	If the point is within a word, rotate the case of the rest of
+	the word among lower -> Capital -> UPPER -> lower.  If the
+	point is between words, rotate the case of the previous word.
+
+^D	Delete the following character.  With an argument, deletes that
+	many characters.  Deleted text is not saved in the kill buffer.
+
+^E	Move to the end of the current line.
+
+^F	Move forward one character.  With an argument, move forward
+	that many characters.
+
+^G	Abort.
+
+^H, BS, Back Arrow	Delete the preceding character.  With an
+	argument, deletes that many characters.  Deleted text is not
+	saved in the kill buffer.
+
+^I, Tab	Insert a Tab.  With an argument, inserts that many Tab characters.
+
+^J, LF, Line Feed 	Split the line at the point.  Indent the text
+	after the point (on the new line) the same amount as the text
+	on the original line was indented.  With an argument, repeats
+	the split that many times.  (This will leave blank lines
+	containing only indentation in the middle.)
+
+^K	Delete the text to the end of the current line or, if at the
+	end of the line, delete the line break.  With an argument,
+	repeats its actions that many times.  Thus, if the point was
+	at the beginning of a line, the sequence ^U ^K will delete two
+	lines.  Save the deleted text in the kill buffer.
+
+^L	Center the point at the preferred percentage on the screen.
+	The PREFPCT value in the resource file controls the preferred
+	percentage.
+
+^M, CR, Return	Insert a line break, leaving the point after the break.
+	With an argument, inserts that many line breaks.
+
+^N	Move down to the next line, staying in as nearly the same
+	column as possible.  With an argument, moves down that many
+	lines.  Successive ^N and ^P commands attempt to preserve
+	the original column.
+
+^O	Open line: insert a line break, leaving the point before the
+	break.	With an argument, opens that many lines.
+
+^P	Move up to the preceding line, staying in as nearly the same
+	column as possible.  With an argument, moves up that many
+	lines.  Successive ^N and ^P commands attempt to preserve
+	the original column.
+
+^Q	Quote: Ask for a character and insert that character into the
+	buffer, ignoring any special meaning.   With an argument,
+	inserts the character that many times.
+
+^R	Reverse search: ask for a search string and search backwards
+	for the previous occurrance of it.  The point is left at the start
+	of the string ("after" the string when considered in terms of the
+	direction of the search).  Lowercase letters in the search
+	string match uppercase letters in the text.  With an argument,
+	searches for the Nth occurance of the string.
+
+^S	Forward search: ask for a search string and search forwards
+	for the next occurrance of it.  The point is left at the end
+	of the string.  Lowercase letters in the search string match
+	uppercase letters in the text.  With an argument, searches for
+	the Nth occurance of the string.
+
+^T	Twiddle: interchange the two characters before the point. The
+	type of interchange can be affected with the TWIDDRAG value in
+	the resource file.
+
+^U	Universal argument. There are two forms:
+
+	^U ^U .... <cmd>	does <cmd> 4, 16, 64, 256, ... times
+				depending upon the number of ^Us (each
+				^U is a multiplier by 4)
+
+	^U <integer> <cmd>	does <cmd> <integer> times
+
+^V	View next: move down to the next screen.  The command operates
+	in terms of screens, not lines, so a ^V ^Z will not necessarily
+	leave the point at its starting position.  The amount of overlap
+	between the screens is specified by the VOVERLAP value in
+	the resource file.  With an argument, move by multiple screens.
+	The type of motion can be altered with the SCRNMOVE value in
+	the resource file.
+
+^W	Delete the text between the point and the mark ("cut"); copy
+	the deleted text to the kill buffer.  With an argument, the
+	deleted text is NOT copied to the kill buffer.
+
+^X	Prefix for the ^X commands listed below.
+
+^Y	Yank: copy the contents of the kill buffer to the point.  The
+	mark is left at the start of the yanked text and the point at
+	the end ("paste").
+
+^Z	Move up to the previous screen.  The command operates in terms
+	of screens, not lines, so a ^Z ^V will not necessarily leave
+	the point at its starting position.  The amount of overlap
+	between the screens is specified by the VOVERLAP value in
+	the resource file.  With an argument, move by multiple screens.
+	The type of motion can be altered with the SCRNMOVE value in
+	the resource file.
+
+^[, Esc	Prefix for the Meta commands listed below.
+
+^\	Delete all white space (indentation) on the current line.
+
+^]	Execute the keyboard macro.  With an argument, repeats the
+	execution that many times.
+
+^^	Bring up the main menus.
+
+^_	no command
+
+SP ... ~	Insert themselves.  With an argument, the character
+	is inserted that many times.
+
+^?, Del	UNIX: Delete the preceding character.  With an argument, deletes
+	that many characters.  Deleted text is not saved in the kill buffer.
+
+	MSDOS:	Delete the preceding word.  With an argument, delete
+	that many words. Deleted text is saved in the kill buffer.
+
+
+Control-X (^X) Commands:
+
+
+^X ^B	Create a system buffer and place in it a list of all buffers
+	and associated information.  With an argument, system buffers
+	are also included in the list.  The SKIPSYS value in the
+	resource file also controls whether system buffers are left
+	out ("skipped") from the list.
+
+^X ^C	Exit / quit the editor.  With an argument, always saves all
+	modified non-system buffers without asking.
+
+^X ^D	DIRED: Ask for a directory or file name or starname, and insert
+	a list of all files that match that name into a system buffer.
+	An empty directory or file name means to list all files in the
+	current directory.  With an argument, a "long" list is created
+	that includes file size, date, and other information.  On
+	MSDOS systems, you can't just give a directory name, it must
+	include a file name part (e.g., type "/dos/" to see all files
+	in the /dos directory).
+
+^X ^E	Ask for and execute a system command.  May not work reliably
+	on the system manager versions.
+
+^X ^F	Ask for the name of a file.  If the file name matches one that
+	has already been read it, go to that buffer.  Otherwise, read
+	that file into a new buffer whose name is derived from the file
+	name.  If the new filename does not contain a directory part,
+	the match ignores the directory part.  You can get around this
+	matching by reading in a file named "./<desired name>".  On
+	MSDOS systems, with an argument, no ^M ^J to newline
+	processing is performed.
+
+	The command's behavior changes if you are in the DIRED buffer.
+	In this case, it does not prompt you for the filename, but
+	instead uses the filename found on the current line.  The filename
+	is the last "thing" on the current line, where "things" are
+	marked off by Space and Tab characters.
+
+^X ^G	Abort: cancel ^X prefix.
+
+^X ^H	Delete from the point to the beginning of the current sentence.
+	Deleted text is saved in the kill buffer.
+
+^X ^I	Ask for the name of a file and inserts the contents of the file
+	at the point.  On MSDOS systems, with an argument, no ^M ^J to
+	newline processing is performed.
+
+^X ^K	Ask for the name of a file and delete the specified file.
+
+	The command's behavior changes if you are in the DIRED buffer.
+	In this case, it does not prompt you for the filename, but
+	instead uses the filename found on the current line.  The filename
+	is the last "thing" on the current line, where "things" are
+	marked off by Space and Tab characters.  Note that it does
+	_not_ update the DIRED display.
+
+^X ^L	Convert all text in the region to lower case.
+
+^X ^P	Print the region.  If an argument is supplied, the file is sent
+	"raw:" no pagination or newline conversions are performed.
+
+^X ^R	Ask for the name of a file and read the contents of the file into
+	the buffer: used for refreshing the buffer from the copy on disk.
+	On MSDOS systems, with an argument, no ^M ^J to newline processing
+	is performed.
+
+^X ^S	Save the contents of the current buffer to the associated file.
+	The SAVEUNMOD value in the resource file controls whether saves
+	are performed if the buffer's modification flag is not set.
+	The BACKUP value in the resource file controls whether backup
+	copies are made.  On MSDOS systems, with an argument, no
+	newline to ^M ^J processing is performed.
+
+^X ^U	Convert all text in the region to upper case.
+
+^X ^V	View next other window: move the text in the other window down
+	to the next screen.  The command operates in terms of screens,
+	not lines, so a ^X ^V ^X ^Z will not necessarily leave the text
+	in the other window at its starting position.  The amount of
+	overlap between the screens is specified by the VOVERLAP value in
+	the resource file.  With an argument, move by multiple screens.
+	The type of motion can be altered with the SCRNMOVE value in
+	the resource file.
+
+^X ^W	Ask for the name of a file and write the contents of the
+	buffer to that file.  On MSDOS systems, with an argument, no
+	newline to ^M ^J processing is performed.  The BACKUP value in
+	the resource file controls whether backup copies are made.
+
+^X ^X	Exchange the point and mark.
+
+^X ^Z	View previous other window: move the text in the other window up
+	to the preceeding screen.  The command operates in terms of screens,
+	not lines, so a ^X ^Z ^X ^V will not necessarily leave the text
+	in the other window at its starting position.  The amount of
+	overlap between the screens is specified by the VOVERLAP value in
+	the resource file.  With an argument, move by multiple screens.
+	The type of motion can be altered with the SCRNMOVE value in
+	the resource file.
+
+^X ^\	Remove all trailing Space and Tab characters from all lines
+	in the region.
+
+^X #	Display the margin settings.  With an argument, inserts a ruler
+	line containing the current settings at the start of the buffer.
+
+^X (	Start collecting a keyboard macro.
+
+^X )	End collecting a keyboard macro.  If an argument is supplied,
+	it assumes that it was invoked from the menus (and not ^X ) ).
+
+^X +	Cycle the screen type to the next value.  The list of values is
+	found in the TYPELIST value in the resource file.  If the current
+	screen type is not in the list, the first entry on the list is
+	used.   If an argument is supplied, ask if you are sure and if so,
+	set the screen type to that value.  See the SCRNTYPE value in
+	the resource file for a list of values.
+
+^X ,	With an argument, set this buffer's tab spacing to that argument.
+	With no argument, display an error message.  The TABW value in
+	the resource file controls the default tab spacing.  The tab
+	spacing of a buffer is inherited from that in the (old)
+	current buffer when the buffer is created.  The tab spacing
+	can also be set from a ruler line.
+
+^X -	Toggle the setting of the SWAPPGNL value, which toggles the
+	meanings of the Up/Down Arrow and PgUp/Dn keys.  The argument
+	is ignored.
+
+^X .	With an argument, set this buffer's left margin (indent
+	column) to that argument. With no argument, display an error
+	message.  The LMAR value in the resource file controls the
+	default left margin.  The left margin of a buffer is inherited from
+	that in the (old) current buffer when the buffer is created.  The
+	left margin can also be set from a ruler line.
+
+^X /	Brings up a menu that asks for a fill mode for this buffer.  With
+	an argument, sets the fill mode as:
+
+		0	None
+		1	Fill
+		2	Wrap
+
+	The FILL value in the resource file controls the default fill
+	mode.  The fill mode of a buffer is inherited from that in the
+	(old) current buffer when the buffer is created.  The fill
+	mode IS NOT set from a ruler line.
+
+^X 1	One window mode.
+
+^X 2	Two window mode.  Split the screen horizontally.
+
+^X 3	Two window mode, leave the point in the other window.
+
+^X 7	Clear the meta bit (bit 2^7) in all characters in the region. 
+	With an argument, sets the meta bit.
+
+^X 8	Treat the argument as the decimal value of a (presumably 8-bit)
+	character and insert it.
+
+^X 9	Treat the argument as a scan code and execute the function key
+	specified by that code.
+
+^X <	Scroll the window left.  With an argument, sets the left margin
+	to the specified column.  The HOVERLAP value in the resource file
+	controls the amount of overlap.
+
+^X =	Display the current cursor position.
+
+^X >	Scroll the window right.  With an argument, sets the left margin
+	to the specified column.  The HOVERLAP value in the resource file
+	controls the amount of overlap.
+
+^X @	Show the decimal, hexadecimal, and octal representations
+	of the character at the point.
+
+^X B	Switch to the next buffer in the ring.  With an argument,
+	system buffers may be switched to.  The SKIPSYS value in the
+	resource file also controls whether system buffers are skipped.
+
+^X C	Exit / quit the editor.  With an argument, always saves all
+	modified non-system buffers without asking.
+
+^X D	If the DIRED buffer already exists, switch to that buffer.
+	Otherwise, this is the same as the ^X ^D command.
+
+^X E	Execute the keyboard macro.  With an argument, repeats the
+	execution that many times.
+
+^X F	With an argument, set this buffer's right margin to that argument.
+	With no argument, display an error message.  The RMAR value in
+	the resource file controls the default right margin.  The
+	right margin of a buffer is inherited from that in the (old)
+	current buffer when the buffer is created.  The right margin
+	can also be set from a ruler line.
+
+^X H	Bring up the Help menu.
+
+^X K	Kill (delete) the current buffer and move to the previous
+	buffer in the ring.  With an argument, do not skip system buffers
+	when moving to the previous buffer.  The SKIPSYS value in the
+	resource file also controls whether system buffers are skipped.
+	If no non-system buffers are left, the scratch buffer is
+	automatically (re)created.
+
+^X O	Switch to the other window.
+
+^X P	Print the buffer.  With an argument, the data is sent "raw:"
+	no pagination or newline conversions are performed.  The
+	point is left at the beginning of the buffer and the mark at the
+	end.
+
+^X Q	Quote: Ask for a character and insert that character into the
+	buffer, ignoring any special meaning.   With an argument,
+	inserts the character that many times.
+
+^X T	Tabify the region: convert multiple spaces (where applicable)
+	to Tab characters.
+
+^X U	Untabify the region: convert Tab characters to one or more Space
+	characters.
+
+^X V	Switch to the previous buffer in the ring.  With an argument,
+	system buffers may be switched to.  The SKIPSYS value in the
+	resource file also controls whether system buffers are skipped.
+
+^X [	Outdent all lines in the region by the width of a Tab character.
+	With an argument, outdent by that many characters.
+
+^X ]	Indent all lines in the region by the width of a Tab character.
+	With an argument, indent by that many characters.
+
+^X ^	Grow the current window by the number of lines specified by the
+	argument.
+
+^X `	Toggle whether gray space is visible.  The VISGRAY value in
+	the resource file controls whether grayspace is initially
+	visible.
+
+^X {	Convert all text in the region from fill- to wrap-style newlines.
+	Fill-style newlines use ^J to indicate a line break and two ^Js
+	to indicate a paragraph break.  Wrap-style newlines use soft newline
+	(^_) internally to indicate a new line and ^J to indicate a
+	paragraph break.
+
+^X }	Convert all text in the region from wrap- to fill-style newlines.
+	Wrap-style newlines use soft newline (^_) internally to
+	indicate a new line and ^J to indicate a paragraph break.
+	Fill-style newlines use ^J to indicate a line break and two ^Js
+	to indicate a paragraph break.
+
+^X ^?	Delete from the point to the beginning of the current line.
+	Deleted text is saved in the kill buffer.
+
+
+Meta (^[, Esc) Commands:
+
+
+Esc ^A	Place the mark at the beginning of the current number and the
+	point at the end.
+
+Esc ^B	Move backward one number.  With an argument, move backward
+	that many numbers.
+
+Esc ^C	Create a calendar for the current month in the calendar
+	buffer. An argument can have one of three forms:
+
+		MM		month number MM of current year
+		YYYY		current month of year YYYY
+		MMYYYY		month MM of year YYYY
+
+	The CALSTART value in the resource file controls the starting
+	day of the week.
+
+Esc ^E	Enter the current number into the calculator.
+
+Esc ^F	Move forward one number.  With an argument, move forward that
+	many numbers.
+
+Esc ^G	Abort: cancel Esc prefix.
+
+Esc ^H, BS, Back Arrow	Delete the preceding word.  With an argument,
+	delete that many words. Deleted text is saved in the kill buffer.
+
+Esc ^K	Delete the entire line that the point is on.  With an argument,
+	delete that many lines. Deleted text is saved in the kill buffer.
+
+Esc ^L	Refresh and recenter the screen.  The PREFPCT value in the
+	resource file controls the preferred percentage.
+
+Esc ^M	Insert a printed copy of the number in the X register into the
+	buffer.  With an argument, do Esc ^A ^W first.
+
+Esc ^N	Advance the calendar by one month.  If no calendar has been
+	established, it starts at the current month.  With an argument,
+	advance by that many months.  The CALSTART value in the
+	resource file controls the starting day of the week.
+
+Esc ^P	Rewind the calendar by one month.  If no calendar has been
+	established, it starts at the current month.  With an argument,
+	rewind by that many months. The CALSTART value in the resource
+	file controls the starting day of the week.
+
+Esc ^R	Query replace: ask for an old string and a new string. At
+	each occurance of the old string, display it and ask what
+	to do:
+
+		Y, y, space	do the replace and go to the next one
+
+		N, n, ^H, ^?	do NOT replace and go to the next one
+
+		,		replace, show the replacement, and ask
+				for Y/N confirmation
+
+		.		do the replace and exit immediately
+
+		!		do the rest of the replacements without
+				asking
+
+		?, F1		show help
+
+		^G, Esc		exit
+
+Esc ^U	RPN Calculator.  Not in system manager versions.  See the
+	"fcalc.doc" file.
+
+Esc ^W	Append the next delete to the kill buffer instead of replacing
+	it.
+
+Esc ^]	With no argument, insert the contents of the keyboard macro
+	into the current buffer at the point.  Note that function keys
+	are NOT preserved.
+
+	With an argument of 4, load as much of the current buffer as
+	will fit into the keyboard macro.  Again, there is no way of
+	loading function keys with this method.
+
+	With any other argument, the specified keyboard macro is
+	fetched from the resource file and loaded.  Function keys
+	may be loaded by this mechanism.
+
+Esc SP	Place the mark at the point.
+
+Esc 0-9	Executes the specified keyboard macro directly from the
+	resource file (i.e., without altering the macro saved with ^X
+	( and X _) ).  Any argument is passed to the macro, just as
+	with ^].  Do not include these commands in menu key sequences
+	(they use the same internal buffer as menu key sequences).
+
+Esc <	Move to the beginning of the current buffer and set the mark
+	to the place that you moved from.  With an argument, move to
+	the argth line and leave the mark alone.
+
+Esc =	Display line counts.
+
+Esc >	Move to the end of the current buffer and set the mark
+	to the place that you moved from.  With an argument, move to
+	the argth line and leave the mark alone.
+
+Esc A	Move to the beginning of the current sentence.  With an argument,
+	move backward that many sentences.
+
+Esc B	Move backward one word.  With an argument, move backward that
+	many words.
+
+Esc C	Capitalize the following word.  With an argument, capitalize
+	that many words.  The WORDEND value in the resource file
+	controls where the point is left.
+
+Esc D	Delete the following word.  With an argument, delete that many
+	words. Deleted text is saved in the kill buffer.  The WORDEND
+	value in the resource file controls how much text is deleted.
+
+Esc E	Move to the end of the current sentence.  With an argument,
+	move by that many sentences.
+
+Esc F	Move forward one word.  With an argument, move forward that
+	many words.  The WORDEND value in the resource file controls
+	where the point is left.
+
+Esc G	Fill all paragraphs in the region. Fill- or wrap-style
+	newlines are used depending upon the buffer mode.  Fill-style
+	is used if filling is turned off. The left margin is not used.
+	With an argument, sets the region to include the whole buffer
+	and fills the whole buffer.
+
+Esc H	Place the point and the mark around the current paragraph.
+	With an argument, place the point at the beginning and the
+	mark at the end of the buffer.
+
+Esc K	Delete the remainder of the current sentence.  With an argument,
+	deletes that many more sentences. Deleted text is saved in the
+	kill buffer.
+
+Esc L	Convert the following word to lower case.  With an argument,
+	convert that many words.  The WORDEND value in the resource
+	file controls where the point is left.
+
+Esc Q	Fill the current paragraph.  Fill- or wrap-style newlines are
+	used depending upon the buffer mode.  Fill-style is used if
+	filling is turned off.  The left margin is not used.
+
+Esc R	Replace: ask for an old string and a new string. At each
+	occurance of the old string, replace it with the new.
+
+Esc S	Center the current line between the left and right margins.
+
+Esc T	Transpose the adjoining words.
+
+Esc U	Convert the following word to upper case.  With an argument,
+	convert that many words.  The WORDEND value in the resource
+	file controls where the point is left.
+
+Esc V	Move up to the previous screen.  The command operates in terms
+	of screens, not lines, so a Esc V ^V will not necessarily leave
+	the point at its starting position.  The amount of overlap
+	between the screens is specified by the VOVERLAP value in
+	the resource file.  With an argument, move by multiple screens.
+	The type of motion can be altered with the SCRNMOVE value in
+	the resource file.
+
+Esc W	Copy the region to the kill buffer.
+
+Esc [	Move to the beginning of the current paragraph.  With an argument,
+	move that many paragraphs.
+
+Esc \	Delete the spaces, tabs, and newlines around the point; insert
+	one space.
+
+Esc ]	Move to the end of the current paragraph.  With an argument,
+	move that many paragraphs.
+
+Esc ~	Clear the buffer modified flag.
+
+Esc ^?	Delete the preceding word.  With an argument, delete that many
+	words. Deleted text is saved in the kill buffer.
+
+
+Named Keys:
+
+
+BS	Same as ^H, also BACK SPACE.
+TAB	Same as ^I.
+LF	Same as ^J, also LINE FEED (sometimes ENTER).
+CR	Same as ^M, also CARRIAGE RETURN or RETURN (sometimes ENTER).
+ESC	Same as ^[, also ESCAPE.
+DEL	Same as ^?, also DELETE or RUBOUT (obsolete).
+
+
+Special Function Key Commands:
+
+The commands with key labels are invoked by pressing the named key
+(easy enough, at least on an IBM PC or compatible).  The other
+functions don't have key assignments: they are for use with menu
+entries.  If you wanted to invoke one directly from the keyboard, use
+the ^X 9 command.
+
+code	label		what
+
+^0			INTERNAL: Invoke the menu system.  Arguments:
+				0	main menu
+				1	help menu
+				other	specified menu #
+
+^1			INTERNAL: Do the ^: function.  Reads from the
+			keyboard until a ` character is encountered.
+			Then displays that string as a prompt.  Accept
+			a response.  If valid, convert it to a number
+			and turn that into the argument for use by the
+			next command.  Otherwise, cancel the current
+			macro.
+
+^2			INTERNAL: Same as ^X ^F (including argument), but
+			follow the search path to find the file.
+
+^3	Ctrl-2		Place the mark at the point.
+
+^4			Apropos.  Ask for a string and create a system
+			buffer that conntains the help text for all
+			commands that include that string in their help
+			text.
+
+^5			Create a system buffer whose contents describe
+			the bindings of all keys.  The text is
+			constructed from the command tables.  The text
+			does not list self-insert or bad commands.
+
+^6			Ask for a key and describe what the key does.
+
+^7			Ask for the name of a file and save the region into
+			that file, replacing any existing contents of
+			that file.  On MSDOS systems, with an argument,
+			no ^M ^J to newline conversion is performed.
+
+^8			Show "About Freyja" information.  This information
+			includes:
+
+				version
+				which code the resource file was made for
+				current keyboard mode
+				current screen type
+				BIOS call override setting
+				screen size (rows x columns)
+				number of swap area pages in use, total,
+					and page size
+				current working directory
+
+^9			Bring up the Printer Selection menu.
+
+^10			MS/DOS only: Show a character attribute test
+			screen.  Attribute values increase left to
+			right, then top to bottom.
+
+	Alt-<letter>	Same as Esc <letter>
+
+^59	F1		Bring up the Help menu.
+
+^60	F2		Delete the entire line that the point is on.
+			With an argument, delete that many lines.
+			Deleted text is saved in the kill buffer.
+
+^61	F3		Delete the spaces, tabs, and newlines around
+			the point; insert one space.
+
+^62	F4		Opens a new line with the same initial
+			indentation as the current line.  This is to ^O
+			as ^J is to ^M.
+
+^63	F5		Switch to the next buffer in the ring.  With
+			an argument, system buffers may be switched to.
+			The SKIPSYS value in the resource file also
+			controls whether system buffers are skipped.
+
+^64	F6		Switch to the other window.
+
+^65	F7		Forward search: ask for a search string and
+			search forwards for the next occurrance of it.
+			The point is left at the end of the string.
+			Lowercase letters in the search string match
+			uppercase letters in the text.  With an
+			argument, searches for the Nth occurance of
+			the string.
+
+^66	F8		Save the contents of the current buffer to the
+			associated file. The SAVEUNMOD value in the
+			resource file controls whether saves are
+			performed if the buffer's modification flag is
+			not set.  The BACKUP value in the resource file
+			controls whether backup copies are made.
+
+^67	F9		RPN Calculator.  Not in system manager versions.
+			See the "fcalc.doc" file.
+
+^68	F10		Bring up the main menus.
+
+^71	Home		Move to the beginning of the current buffer
+			and set the mark to the place that you moved
+			from.  With an argument, move to the argth
+			line and leave the mark alone.
+
+			The HOMEEND value in the resource file controls
+			whether the meaning of this key and Ctrl-Home
+			are swapped.
+
+^72	Up Arrow	Move up to the preceding line, staying in as
+			nearly the same column as possible.  With an
+			argument, moves up that many lines.
+			Successive UP and Down commands attempt to
+			preserve the original column.
+
+			The SWAPPGLN value in the resource file and
+			the ^X - command control whether this command
+			is swapped with PgUp.
+
+^73	PgUp		Move up to the previous screen.  The command
+			operates in terms of screens, not lines, so a
+			PgUp PgDn will not necessarily leave the point
+			at its starting position.  The amount of
+			overlap between the screens is specified by
+			the VOVERLAP value in the resource file.  With
+			an argument, move by multiple screens.	The
+			type of motion can be altered with the
+			SCRNMOVE value in the resource file.
+
+			The SWAPPGLN value in the resource file and
+			the ^X - command control whether this command
+			is swapped with Up Arrow.
+
+^75	Left Arrow	Move backward one character.  With an
+			argument, move backward that many characters.
+
+^77	Right Arrow	Move forward one character.  With an argument,
+			move forward that many characters.
+
+^79	End		Move to the end of the current buffer and set
+			the mark to the place that you moved from.
+			With an argument, move to the argth line and
+			leave the mark alone.
+
+			The HOMEEND value in the resource file controls
+			whether the meaning of this key and Ctrl-End
+			are swapped.
+
+^80	Down Arrow	Move down to the next line, staying in as
+			nearly the same column as possible.  With an
+			argument, moves down that many lines.
+			Successive Down and Up commands attempt to
+			preserve the original column.
+
+			The SWAPPGLN value in the resource file and
+			the ^X - command control whether this command
+			is swapped with PgDn.
+
+^82	PgDn		View next: move down to the next screen.  The
+			command operates in terms of screens, not
+			lines, so a PgDn PgUp will not necessarily
+			leave the point at its starting position.  The
+			amount of overlap between the screens is
+			specified by the VOVERLAP value in the
+			resource file.  With an argument, move by
+			multiple screens. The type of motion can be
+			altered with the SCRNMOVE value in the
+			resource file.
+
+			The SWAPPGLN value in the resource file and
+			the ^X - command control whether this command
+			is swapped with Down Arrow.
+
+^82	Ins		Open line: insert a line break, leaving the
+			point before the break.	With an argument,
+			opens that many lines.
+
+^83	Del		Delete the following character.  With an
+			argument, deletes that many characters.
+			Deleted text is not saved in the kill buffer.
+
+^88	Shift-F5	Kill (delete) the current buffer and move to
+			the previous buffer in the ring.  With an
+			argument, do not skip system buffers when
+			moving to the previous buffer.  The SKIPSYS
+			value in the resource file also controls
+			whether system buffers are skipped.  If no
+			non-system buffers are left, the scratch
+			buffer is automatically (re)created.
+
+^89	Shift-F6	Toggle between one and two window mode.
+
+^91	Shift-F8	Ask for the name of a file.  If the file name
+			matches one that has already been read it, go
+			to that buffers.  Otherwsie, read that file
+			into a new buffer whose name is derived from
+			the file name.  If the new filename does not
+			contain a directory part, the match ignores
+			the directory part.  You can get around this
+			by reading in a file named "./<desired name>".
+			On MSDOS systems, with an argument, no ^M ^J
+			to newline processing is performed.
+
+^92	Shift-F9	Create a calendar for the current month in the
+			calendar buffer. An argument can have one of
+			three forms:
+
+				MM		month number MM of current year
+				YYYY		current month of year YYYY
+				MMYYYY		month MM of year YYYY
+
+			The CALSTART value in the resource file
+			controls the starting day of the week.
+
+^93	Shift-F10	Exit / quit the editor.  With an argument,
+			always saves all modified non-system buffers
+			without asking.
+
+^94	Ctrl-F1		Bring up the Help menu.
+
+^95	Ctrl-F2		Copy the region to the kill buffer.  With an
+			argument, the characters are copied exactly
+			with no newline or other conversions performed.
+
+			System manager versions copy to the text to the
+			clipboard INSTEAD of the kill buffer.
+
+^96	Ctrl-F3		Delete the text between the point and the mark
+			("cut"); copy the deleted text to the kill
+			buffer  With an argument, the deleted text is
+			NOT copied to the kill buffer.
+
+			System manager versions copy to the text to the
+			clipboard INSTEAD of the kill buffer. With an
+			argument, the characters are copied exactly
+			with no newline or other conversions performed.
+
+^97	Ctrl-F4		Yank: copy the contents of the kill buffer to
+			the point.  The mark is left at the start of
+			the yanked text and the point at the end
+			("paste").  With an argument, the characters
+			are copied exactly with no newline or other
+			conversions performed.
+
+			System manager versions copy to the text from the
+			clipboard INSTEAD of the kill buffer.
+
+^98	Ctrl-F5		Reverse search: ask for a search string and
+			search backwards for the previous occurrance
+			of it.  The point is left at the start of the
+			string ("after" the string when considered in
+			terms of the direction of the search).
+			Lowercase letters in the search string match
+			uppercase letters in the text.  With an
+			argument, searches for the Nth occurance of
+			the string.
+
+^99	Ctrl-F7		Forward search: ask for a search string and
+			search forwards for the next occurrance of it.
+			The point is left at the end of the string.
+			Lowercase letters in the search string match
+			uppercase letters in the text.  With an
+			argument, searches for the Nth occurance of
+			the string.
+
+^101	Ctrl-F8		Save the contents all non-system buffer(s) to
+			the associated file(s). The SAVEUNMOD value in
+			the resource file controls whether saves are
+			performed if the buffer's modification flag is
+			not set.  The BACKUP value in the resource
+			file controls whether backup copies are made.
+			On MSDOS systems, with an argument, no newline
+			to ^M ^J processing is performed.
+
+^102	Ctrl-F9		Place the mark at the point.
+
+^110	Ctrl-F10	Insert a page break (^L) at the point.
+
+^115	Ctrl-Left Arrow	Move backward one word.  With an argument,
+			move backward that many words.
+
+^116	Ctrl-Right Arrow Move forward one word.  With an argument,
+			move forward that many words.  The WORDEND
+			value in the resource file controls where the
+			point is left.
+
+^117	Ctrl-End	Move to the end of the current line.
+
+			The HOMEEND value in the resource file controls
+			whether the meaning of this key and End
+			are swapped.
+
+^119	Ctrl-Home	Move to the beginning of the current line.
+
+			The HOMEEND value in the resource file controls
+			whether the meaning of this key and Home
+			are swapped.
+
+	Alt-0 to Alt-9	Executes the specified keyboard macro directly
+			from the resource file (i.e., without altering
+			the macro saved with ^X ( and X _) ).  Any
+			argument is passed to the macro, just as with
+			^].  Do not include these commands in menu key
+			sequences (they use the same internal buffer
+			as menu key sequences).
+
+^131	Alt-=		Display line counts.
+
+^200	MENU		Bring up the Main menus.
+
+^208	ZOOM		Cycle the screen type to the next value.  The
+			list of values is found in the TYPELIST value
+			in the resource file.  If the current screen
+			type is not in the list, the first entry on
+			the list is used.  If an argument is supplied,
+			ask if you are sure and if so, set the screen
+			type to that value.  See the SCRNTYPE value in
+			the resource file for a list of values.
+
+^209	DATE		Insert the date at the point in YYYY-MM-DD form.
+
+^210	TIME		Insert the time at the point in HH:MM:SS form.
+
+^212	CUT		Delete the text between the point and the mark
+			("cut"); copy the deleted text to the kill
+			buffer.  With an argument, the deleted text is
+			NOT copied to the kill buffer.  With an
+			argument, the characters are copied exactly
+			with no newline or other conversions performed.
+
+			System manager versions copy to the text to the
+			clipboard INSTEAD of the kill buffer.
+
+^213	COPY		Copy the region to the kill buffer.  With an
+			argument, the characters are copied exactly
+			with no newline or other conversions performed.
+
+			System manager versions copy to the text to the
+			clipboard INSTEAD of the kill buffer.
+
+^214	PASTE		Yank: copy the contents of the kill buffer to
+			the point.  The mark is left at the start of
+			the yanked text and the point at the end
+			("paste").  With an argument, the characters
+			are copied exactly with no newline or other
+			conversions performed.
+
+			System manager versions copy to the text from the
+			clipboard INSTEAD of the kill buffer.
+

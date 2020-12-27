@@ -1,0 +1,58 @@
+USAGE:
+
+memutil (from the HP95LX or HP100LX System Manager)
+
+PURPOSE:
+
+This program displays memory and status.
+
+OPTIONS:
+
+none
+
+RESTRICTIONS:
+
+none
+
+DEFAULTS:
+
+none
+
+FUNCTION:
+
+MemUtil is a program for displaying and snapshoting memory in the
+HP95LX or HP100LX when the system manager is in operation.  When you
+first start it, you see which applications are available, their hot
+keys, and their status.  As such, it is a handy guide to your system. 
+However, the program can do much more.  It can:
+
+- Show you detailed information about each application.
+- Show you the application's data segment.
+- Show you the MS/DOS memory chains.
+- Show you the contents of any of the MS/DOS chain blocks.
+- Show you arbitrary memory locations.
+- Show you the character set and function keys.
+
+In addition, any of these displays can be saved to either the
+clipboard or to a file.  Most of the displays can be saved as either
+human-readable text or in binary form.
+
+The built-in help text serves as the manual.
+
+I would like to credit the authors of "The Wait Group's MS-DOS
+Developer's Guide, Second Edition" for explaining the techniques for
+retrieving the MS/DOS memory chains.
+
+I would like to credit Hewlett-Packard company, and in particular
+Everett Kaser, for explaining the techniques for retrieving the
+application control blocks (in the "what" program).
+
+AUTHOR:
+
+Copyright 1992,3 by Craig A. Finseth
+
+ABOUT THE ICON:
+
+The icon shows a magnifying glass, a reasonably traditional symbol for
+"looking into things."  The (hexadecimal) digits are the ASCII values
+for "fin", my usual monikor.

@@ -1,0 +1,156 @@
+USAGE:
+
+moon [options] [<year> [<mon> [<day> [<hour> [<min> [<sec>]]]]]]
+
+PURPOSE:
+
+Prints a current representation of the phase of the moon, in either
+text or "pictorial" format.
+
+OPTIONS:
+
+Option names always start with a single dash ("-") and must be spelled
+exactly as shown but may be entered in upper, lower, or mixed case.
+No embedded spaces may be used in the option name.  Note that many
+options also have a "short" form.  If an option has a parameter, the
+parameter must be separated from the option name with one or more
+space or tab characters.  Option names or option name/parameter pairs
+may appear anywhere in the command line after the command name.
+
+	-bright
+	-b
+	Tells the program to assume that the screen has bright
+	characters on a dark background.  If omitted, the program
+	assumes that the screen has dark charcters on a bright
+	background.  It only applies to the -phase option.
+
+	-c <#>
+	Sets the number of columns (screen width) used by the "phase"
+	picture to #.  Maximum / default # is 79.
+
+	-date
+	-d
+	Prints the current date as used in ISO notation and is of the
+	form:
+
+1990-09-20 10:31:59
+
+	-fill
+	-f
+	Tells the program to fill in the background.  It only applies
+	to the -phaseR option.
+
+	-jaguar
+	-j
+	Sets the number of columns and rows used by the "phase"
+	picture to 39 and 10, which is the right size for an HP95LX
+	Jaguar.
+
+	-long
+	-l
+	-timestamp
+	-t
+	Prints the long timestamp.  The long stamp is the "official
+	phase of the moon" timestamp and is of the form:
+
+10:31:59am Thursday, 20 September 1990: New Moon+0d 6h 2m 59s
+
+	-moon
+	-m
+	Prints the moon phase information.  It is of the form:
+
+ 6 hours, 4 minutes, 11 seconds since the New Moon
+
+	-phase
+	-p
+	Prints the current phase as a picture.  It is of the form:
+
+                              =                =
+                         =                          =
+                      =                                =
+                   =                                      =
+                  =                                        =
+                =                                            =
+               =                                              =
+               =                                              =
+               =                                              =
+               =                                              =
+               =                                              =
+                =                                            =
+                 =                                          =
+                  =                                        =
+                    =                                    =
+                      =                                =
+                          =                        =
+                                =            =
+
+	-r <#>
+	Sets the number of rows used by the "phase" picture to #.
+	Default is 18.
+
+	-short
+	-s
+	Prints a short form of the phase of the moon.  It is of the
+	form:
+
+10:37:12am 8/20/90: NM+0d 6h 8m 12s
+
+	-what
+	-w
+	Prints a description of the phase of the moon.  It is of the
+	form:
+
+ New Moon + 0d 6h 8m 37s: Waxing Crescent, DARK:BRIGHT
+
+	-zone <#>
+	-z <#>
+	Sets the local time zone difference from GMT.  It defaults to
+	6 (Central Standard Time).  Changing this is nice, but not
+	crucial as the algorithm has a noticable "jitter" with respect
+	to the actual phase.
+
+RESTRICTIONS:
+
+The program is Northern Hemisphere-centric: the moon picture and phase
+descriptions are flipped if you are in the Southern Hemisphere.
+
+The program assumes as 24 x 80 display: it should go look.
+
+Times before the base time in 1975 or after the end of 1999 won't work.
+
+DEFAULTS:
+
+If none of the -d, -l, -m, -p, -s, or -w options are given, -m and -p are
+assumed.
+
+The current time is assumed.
+
+FUNCTION:
+
+This program prints the phase of the moon in any of a variety of
+formats and for any of a variety of times.
+
+By default, it uses the current time.  However, you may specify an
+alternate date or hour by adding parameters.  For example:
+
+	moon 1988		uses 00:00:00 on Jan 1 of 1988
+
+	moon 1988 3 5		uses 00:00:00 on Mar 5 of 1988
+
+	moon 1988 3 5 14 33 12	uses 14:33:12 on Mar 5 of 1988
+
+This program was originally written in PL/1 at the M.I.T. Architecture
+Machine Group.  IT was translated to Fortran, then to C by Brian Hess.
+It was rewritten several times by Craig Finseth.
+
+The algorithm is a first-order approximation to the correct phase of
+the moon calculation (one that has upwards of 30 sin terms).  The base
+time is 10:21am 1/12/75 (GMT) and times before that do not work.  A
+lunar cycle is assumed to be 42,532 minutes long.  This algorithm is
+known to be incorrect.  It, however, is retained in honor of the
+spirit of the original implementation (the approximation is the only
+thing left: even the time constants have been refined).
+
+AUTHOR:
+
+Copyright 1992,3 by Craig A. Finseth

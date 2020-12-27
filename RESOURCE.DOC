@@ -1,0 +1,513 @@
+		       The Freyja Resource File
+
+Freyja requires a resource file for operation.  This file contains
+configuration and operating information.  A resource file starts as a
+ordinary ASCII text file (often having a .res suffix, although this is
+not required).  The THORRES program is used to "compile" this source
+file into a binary form that Freyja can quickly load.
+
+This document describes the syntax of the ASCII text source form, and
+the format of the binary "load" form.
+
+A resource file is organized into a series of tables.  Each table can
+have an arbitrary number of entries.  Each entry can be a 16-bit
+integer, a character string, or a key sequence.
+
+The load form has these limits:
+
+	- 48 tables
+	- 256 entries per table
+	- total size of 16 KBytes
+
+Load formats, while binary, are in a machine-independant and can be
+generated on one machine (say, a Unix workstation) and used on
+another (say, an HP95LX).
+
+You will want to refer to the documentation on the THORRES command and
+the english.res file included with the distribution for additional
+information.
+
+Please be careful when making changes to the resource file.  This
+file, in effect, "opens up" the internals of Freyja and it _is_
+possible to create a file that will cause Freyja to crash.  If in
+doubt, fetch a clean copy of the distribution version and start over
+with your changes.
+
+In general, you can change (within limits) the _values_ for any entry.
+Changing an entry's _type_ or inserting or deleting entries (except
+for adding unlabelled new entries to the end of a table) is what will
+cause big problems.
+
+
+
+ASCII SOURCE FORM
+
+The ASCII text source form is pretty much free-form: newlines and
+whitespace (outside of quoted strings) are ignored.  Comments can be
+present.  They start with a "#" character and continue to the end of
+the line.  They need not start in the first column.
+
+The building blocks are tokens, numbers, strings, key sequences, and
+lists.
+
+The overall structure is like this:
+
+	table	<label1>
+	<entry0>
+	<entry1>
+	 ...
+	<entryn>
+
+	table	<label2>
+	<entry0>
+	<entry1>
+	 ...
+	<entryn>
+
+	table	<label3>
+	   ...
+
+and each <entry> looks like this:
+
+	<label>	<value>
+
+and each <value> looks like this:
+
+	<_selector1> <data1>
+	<_selector2> <data2>
+		...
+	<_selectorn> <datan>
+
+and each <data> looks like one of these:
+
+	<label>
+	<number>
+	<string>
+	key <key sequence>
+	list8 <val1> <val2> ... <valn> .
+	list16 <val1> <val2> ... <valn> .
+
+where each <val> can be one of:
+
+	<label>
+	<number>
+	<?selector> <label>
+	<?selector> <number>
+	<!selector> <label>
+	<!selector> <number>
+
+There are also a few special types.  They are discussed later in the
+document.
+
+
+GENERAL
+
+The source file consists of a sequence of tokens.  Tokens that are in
+lower case are keywords that are significant to the THORRES compiler.
+Tokens that are in UPPER case are used for user-defined names.  You
+can't use MiXeD case tokens.
+
+
+TABLE
+
+The "table" keyword starts a table.  (The "menu" keyword can be used,
+too: see later section.)  Each table has an optional name, and zero or
+more entries.  Each entry consists of an optional label and a value.
+
+
+LABELS
+
+Labels consist of either an UPPERCASE token (digits and _ characters
+are allowed, but it must start with a letter) or a "-".  
+
+The compiler assigns a value to each UPPERCASE token and etiher writes
+that value to a new header file or compares that value against an
+existing header file.  An example line is:
+
+	#define	RES_<label>	<offset>	/* <type> */
+
+The offset is the offset of the entry from the start of the table (for
+a type of "entry" or the table number (for a type of "table").  Labels
+must be unique.
+
+A label of "-" marks the place but assigns no name.
+
+The symbol is suitable for use in these routines:
+
+	value = Res_Number(RES_<table>, RES_<entry>);
+	start = Res_String(&<length>, RES_<table>, RES_<entry>);
+	length = Res_KeySequence(<buffer>, <buffer length>,
+		RES_<table>, RES_<entry>);
+
+
+_ SELECTORS
+
+Tokens that start with _ are special.  They tell which of several
+values to use for the entry.  The _ character is immediately followed
+by one or more lower case characters or a "*".  When a resource file
+is compiled, it is compiled _for_ a particular version.  This version
+is specified by a single, lower-case letter.  When the compiler
+encounters a _ selector that has the letter, the subsequence value is
+incorporated.  Otherwise, the value is skipped.  A _* matches all
+versions.  If a letter appears more than once, the first one is used.
+
+An entry must either have no _selectors or it must have a _selector
+that matches the version (i.e., you must specify a value).
+
+
+DATA ITEMS
+
+These can appear in one of several formats:
+
+	<label>
+	<number>
+	<string>
+	key <key sequence>
+	list8 <val1> <val2> ... <valn> .
+	list16 <val1> <val2> ... <valn> .
+
+<Labels> are a label that has already been defined by the compiler.
+The offset value is used.
+
+<Numbers> look like numbers.  Just about any format is accepted.  They
+can have leading + or - signs.  Formats are:
+
+	###b, ###B	binary number		#=0,1
+
+	###o, ###O	octal number		#=0-7
+	###q, ###Q
+	0###
+
+	###		decimal number		#=0-9
+	###.
+	###d, ###D
+
+	###h, ###H	hexadecimal number	#=0-9, a-f, A-F
+	0x###, 0X###
+
+	###k, ###K	decimal number * 1024	#=0-9
+
+Quoted <strings> are enclosed in matching single or double quotes ('/'
+or "/").  Characters are interpreted as themselves, except for special
+sequences astarted with a backslash (\).  Within a string, whitespace
+is significant and comments are not skipped.  The special sequences
+are:
+
+	\ NEWLINE	splices the next line onto this one
+	\"		means "
+	\'		means '
+	\\		means \
+	\a, \A		means Bell		^G, 7 decimal
+	\b, \B		means Back Space	^H, 8 decimal
+	\f, \F		means Form Feed		^L, 12 decimal
+	\l, \L		means Line Feed		^J, 10 decimal
+	\n, \N		means Newline, same as \L
+	\r, \R		means Carriage Return	^M, 13 decimal
+	\t, \T		means Tab		^I, 9 decimal
+	\v, \V		means Vertical Tab	^K, 11 decimal
+	\x##,		means the char. with the specified hexadecimal value
+	 \X##
+	\###		means the character with the specified octal value
+
+	^/##		means to process ## as a glyph (see the glyph
+			keyword):  if ## is not defined as a glyph,
+			the ## characters are left alone (but the ^/
+			are removed from the string)
+
+	^?##		means to process ## as a glyph (see the glyph
+			keyword):  if ## is not defined as a glyph,
+			all four characters are removed from the string
+
+	^$		means to use the code page as specified on the
+			command line
+
+	^%		means to use the language name as specified
+			on the command line
+
+	^&		means to use the "-for" configuration as specified
+			on the command line
+
+
+Unless you know something I don't, you should use \n as a newline character.
+
+<Key sequences> are two tokens in a row.  The first is the token "key"
+and the second is a quoted string.  First, the quoted string is
+processed as any other string.  Next, the string is converted to a
+series of key codes.  The following special sequences are interpreted:
+
+	^#	(where # is A-Z, @, [, \, ], ^, or _) Converts # to its
+		control format (e.g., ^F becomes 6 decimal).
+
+	^=	Gives you a ^.
+
+	^###	(where # is 0-9) gives you function key ### (decimal)
+		(the meaning of ### is system-dependant, except:
+
+			^0	Invokes a menu whose number is specified
+				by the argument (for example, ^U5^0
+				executes menu #5).  This is the same as ^/.
+
+			^1	Does the reading function that you
+				specify with ^:.
+
+	^:text`  Prompts you with "text", asks for a numeric value,
+		and uses that value as the repeat count for the next command.
+		If the user cancels, the command is aborted.  You can't
+		include any `s or ^s in the text.
+
+	^!text` Looks up "text" as a symbol, then uses the decimal
+		value of that symbol.  You can't include any `s or ^s
+		in the text.
+
+For example, the "go to line" command could be implemented as:
+
+	key	"^:Line number`^[<"
+
+and you can invoke the "FILE" menu with:
+
+	key	"^U^!FILE`^0"
+
+
+<Lists> are many tokens in a row.  They come in two flavors: list8 and
+list16.  The difference is in the size of the data items: a list8 list
+has each entry occupy 8 bits and a list16 entry has each entry occupy
+16 bits.  A token consisting of a single "." terminates the list.
+Each data item in the list can be specified by one of:
+
+	<label>
+	<number>
+	fontmap
+	<?selector> <label>
+	<?selector> <number>
+	<?selector> fontmap
+	<!selector> <label>
+	<!selector> <number>
+	<!selector> fontmap
+
+Where <label> and <number> are as before.  A ?selector works like a
+_selector, but applies within a list.  A !selector works like a
+?selector, but incorporates the item if it _doesn't_ match.  For
+example:
+
+	list8 1 2 3 ?a 4 !a 5 6.
+
+will incorporate 4 if the version is a and 5 if not.
+
+The keyword "fontmap" in a list causes the program to emit the font
+fbitmap.  This bitmap is exactly 768 bytes long.  See the description
+of the glyph keyword later on in the document.
+
+
+MENUS
+
+Menu entries are specified with a "menu" keyword instead of a "table"
+keyword.  (Actually, this is a convention only.  The program treats
+both "menu" and "table" identically.)  Menus are simply a special form
+of tables.  Menus are of the form:
+
+	<title>
+	<type>
+	<string>
+	<key sequence>
+	<string>
+	<key sequence>
+	  ...
+
+The <title> is the menu title.
+
+The <type> is the menu type, from this list:
+
+	0	95LX / Lotus-style "horizontal" menu
+	1	100LX / DOS5-style main menu bar
+	2	100LX / DOS5-style "vertical" menu
+
+and, this bit is also used:
+
+	2^4	reset: menu always displays at the top
+		set: menu "floats"
+
+Types 1 and 2 should be used together: don't try to intermix their
+usage with type 0.  Valid combinations are really:
+
+	0x00	95-style menus
+	0x10	95-style menus, but sub-menus float down
+	0x01	100-style main menu
+	0x12	100-style sub-menus
+
+Each <string> is a menu entry label.  It should ordinarily be a simple
+text string.  Special characters:
+
+	&	if present, prefixes the "hot" letter
+		if not present, the first character is used
+
+	|	if present, separates the label from the key description
+
+You should add "..." to those labels that invoke dialog boxes.
+Examples:
+
+	"Mark"		nothing special (edit menu)
+	"Copy|^[W"	key description
+	"C&ut|^W"	hot key letteroo
+
+Each <key sequence> is a keystroke sequence.
+
+
+
+SPECIAL KEYWORDS
+
+There are two special keywords:
+
+	include
+	glyph
+
+The include keyword is followed by a string.  It specifies the name of
+a file.  This file is read and included as a resource file.  You can
+include one file deep.
+
+The glyph keyword is used to define a character glyph.  It specifies
+three values:
+
+	which chacter is being defined
+	an "alias"
+	a bitmap
+
+The resource compiler "knows" about a single, 256 character, 4x6 font.
+Initially, all entries in the font are blank.  Thus, to define the
+font completely, 256 glyph keywords are required.  Each glyph keyword
+has the form
+
+	glyph <#> "##"
+	<line 0>
+	<line 1>
+	<line 2>
+	<line 3>
+	<line 4>
+	<line 5>
+
+You can use the ? and ! selectors with any of these values.
+
+<#> is a number and specifies which character is being defined.  Its
+Range is 0 to 255.
+
+"<##>" is a string that specifies an optional two-character long
+alias.  The string can be empty ("") for no alias, or it must be
+exactly two characters long.  This alias is used for the ^/## and ^?##
+special forms.
+
+<line 0> to <line 5> is exactly six strings.  They specify the bitmap.
+Each string must be exactly 4 characters long.  Thus, they define a
+cell which is 6 rows high and 4 pixels across.  Non-space characters
+(usually "*") are set bits and space (32 decimal) characters represent
+reset bits.  For display modes that use a 5x3 cell, the last row (line
+5) and rightmost column are omitted.
+
+So, how does all this hang together?  Here's an example.  Let's say we
+want to handle this message:
+
+	"Abcde'" (where e' is supposed to be an accented e)
+
+on two machines.  The first machine has character set 1 and the second
+machine character set 2.  The main resource file starts like this:
+
+	include "rcode^$.res"
+	"Abcd^/e'"
+
+which causes it to include the glyph definitions for code page 1.  It
+might have:
+
+	glyph 0x85 "e'"
+	"    "
+	...
+
+When the compiler encounters the string "Abcd^/e'", it compiles it as
+the string "Abcd\x85".
+
+Later, if the same resource file is compiled for code page 2 and this
+code page has no definition for the alias "e'", the compiler emits the
+string "Abcde'".  Not perfect, but you take what you can get.
+
+
+
+BINARY LOAD FORM
+
+The binary load form has three parts: a header, a list of tables, and
+for each table, the entries and values.
+
+Numeric values are always stored as 2's complement form.  Values from
+0 to 127 (inclusive) are stored as one byte.  Other values take two
+bytes.  The low-order byte is stored first.
+
+String values may be any length (including zero bytes).  They are
+stored one byte per character.  There is always a trailing NUL (0
+decimal) byte, which _is_ included in the count (but does not count as
+data, hence the possibility of a zero length string).
+
+Key sequences may be any length including zero entries.  They are
+stored as a squence of numeric values (two bytes per value, low-order
+byte stored first).  No trailing value is appended.
+
+Lists are stored with one or two bytes per data item.  One byte lists
+look like strings, except that there is no trailing NUL byte.  Two
+byte lists look like key sequences.
+
+
+The header looks like this:
+
+	offset	hex	notes
+
+	0	0xfa	significator
+	1	0x01	format version
+
+The list of tables immediately follows the header and looks like this:
+
+	offset		usage
+
+	2,3		number of tables (N)
+	4,5		start of table 0, in bytes from the start of the file
+	6,7		start of table 1,		"	"
+				...
+	2*N+4,2*N+5	start of table N-1,		"	"
+	2*N+6,2*N+7	start of what would be table N
+				...
+	66,67		start of table 31, in bytes from the start of the file
+	68,69		start of pseudo table after 32,	"	"
+
+Note that the header _always_ allocates room for 32 tables.  However,
+only the number of tables specified are actually used (the rest are
+initialized to zero).
+
+The reason for the "extra" entry at the end is to allow easy
+computation of the size of a table.  You simply subtract the start of
+table X from the start of table X+1 and can obtain the size of table X
+in bytes.
+
+Each table has a list of entries and the entries themselves.  The list
+of entries is of the same format as the list of tables: a count of
+entries, the start of each entry, and the "extra" entry.
+
+If the entry is a number, it will have a length of 1 or 2.
+
+If the entry is a string, it will have a length of the number of
+characters in the string plus one for the trailing NUL.
+
+If the entry is a key sequence, it will have a length that is a
+multiple of 2.
+
+It the entry is a list8, it will have a length of the number of
+data items in the list.
+
+It the entry is a list16, it will have a length that is a multiple of
+2.
+
+The font is 768 bytes long and consists of 256, 3-byte entries.  Each
+entry has this layout:
+
+	byte 0, bits 2^7 to 2^4		line 0, leftmost bit in 2^7
+	byte 0, bits 2^3 to 2^0		line 1, leftmost bit in 2^3
+	byte 1, bits 2^7 to 2^4		line 2, leftmost bit in 2^7
+	byte 1, bits 2^3 to 2^0		line 3, leftmost bit in 2^3
+	byte 2, bits 2^7 to 2^4		line 4, leftmost bit in 2^7
+	byte 2, bits 2^3 to 2^0		line 5, leftmost bit in 2^3
+
+Note that you can not determine an entry's type by inspecting the
+length.

@@ -1,0 +1,131 @@
+USAGE:
+
+thorres [options] <resource source file>
+
+PURPOSE:
+
+This command "compiles" resource source files into resource binary
+files.
+
+OPTIONS:
+
+Option names always start with a single dash ("-") and must be spelled
+exactly as shown but may be entered in upper, lower, or mixed case.
+No embedded spaces may be used in the option name.  Note that many
+options also have a "short" form.  If an option has a parameter, the
+parameter must be separated from the option name with one or more
+space or tab characters.  Option names or option name/parameter pairs
+may appear anywhere in the command line after the command name.
+
+	-codepage <number>
+	-c <number>
+	Specifies the number of a code page to use when compiling.
+	See the "glyph" keyword in the RESOURCE.DOC file.  As a note,
+	this option doesn't actually do anything except specify the
+	value to use for the ^$ special form.  Supported code
+	pages (you can add more):
+
+		000
+		437
+		850
+		852
+		865
+
+	-dump
+	Reads an existing resource file and prints its contents.  Used
+	for verifying proper operation.  Can also use -verbose with this.
+
+	-for <what>
+	-f <what>
+	Creates a resource file for the specified configuration.  Only
+	the first letter of <what> is used.  This letter can be included
+	by using the ^& special form.  Choices:
+
+	i	generic IBMPC and compatible
+	c	HP100LX "cougar:" system manager
+	d	HP100LX "DOS:" MS/DOS, but don't assume sys mgr loaded
+	j	HP95LX "jaguar:" MS/DOS under system manager
+	s	HP95LX "system manager:" system manager
+	u	applies to Unix systems
+
+	-glyphcheck
+	-gc
+	Checks each ^/## and ^?## glyph encountered and prints a message
+	if any of the ##s were not defined in a glyph keyword.
+
+	-glyphlist
+	-gl
+	Lists each ^/## and ^?## glyph encountered.  Each unique
+	glyph is listed at most once.  It is a good idea to run this
+	and -gc occasionally to check for typos.
+
+	-header <header file>, default is <file>.h
+	-h <header file>
+	Specifies the name to use for the header file.
+
+	-language <name>
+	-l <name>
+	Specifies the name of a language to use when compiling.  See
+	the "glyph" keyword in the RESOURCE.DOC file.  As a note, this
+	option doesn't actually do anything except specify the value
+	to use for the ^% special form.  Supported languages (you can
+	add more):
+
+		dk	Danish / dansk
+		en	English
+
+	-new
+	Creates a new header file.  Without this option, the program
+	checks against an existing header file.
+
+	-o <resource file>
+	Specifies the name to use for the resource (output) file.
+
+	-verbose
+	-v
+	Tells the program to be verbose about what it is doing.  Used
+	for verifying proper operation.
+
+RESTRICTIONS:
+
+32 tables and menus
+256 entries per table
+16 KBytes total
+512 symbols (labelled tables + entries)
+16 characters per label
+
+DEFAULTS:
+
+-c 437
+
+-header <file>.h, where <file> is the name of the source file without
+the suffix.
+
+-l en
+
+-o <file>.ri, where <file> is the name of the source file without the
+suffix.
+
+FUNCTION:
+
+This command operates in one of three ways.
+
+The most common method would be to update an existing resource file,
+perhaps by modifying a default.  In this mode, the program reads the
+source file and outputs a binary file.  The symbols in the source file
+are checked against those in an _existing_ header file to ensure that
+none have had their values changed.
+
+The second method would be when adding new fields to the resource
+file.  In this mode (specified by supplying -new), the program reads
+the source file and outputs both a binary file and a new header file.
+You must then recompile all of the application so that it can
+incorporate the new or changed fields.
+
+The third method would be to dump an existing resource file.  In this
+mode (specified by -dump), the program reads a binary file and dumps
+its contents in hex.
+
+AUTHOR:
+
+Copyright 1992,3 by Craig A. Finseth

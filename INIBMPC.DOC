@@ -1,0 +1,189 @@
+		 Installation Instructions for IBM PC
+			and Compatible Systems
+
+Code Letter: I
+
+Features:
+
+The IBMPC version supports all standard features plus:
+
+- function and Alt- key support
+- direct screen output support
+- 40-column display mode
+
+
+Caution:
+
+If you have a Hercules graphics card, it may fail the autodetection
+algorithm.  You can force it to a regular monochome screen by setting
+SCRNTYPE to 7 in freyja.res (and rebuilding the .ri file, of course).
+
+
+------------------------------------------------------------
+Installation:
+
+---------- from diskette --------------------
+
+1) Create a directory on the MS/DOS system to hold the files.
+
+2) Copy the files from the diskette(s) to this directory.
+
+	copy a:*.*
+
+3) Install it, for each file:
+
+	freyja.exe
+	makeexm.exe
+	moon.exe
+	thorabk.exe
+	thorcont.exe
+	thornumb.exe
+	thorpage.exe
+	thorpbk.exe
+	thorres.exe
+	thortext.exe
+
+do:
+
+	copy <file> <whereever you put your executables>
+
+4) Install the documentation files, for each file:
+
+	copying.doc	[help]
+	fcalc.doc	[help]
+	fcmdlist.doc	[help]
+	fcmdxref.doc	[help]
+	fmenus.doc	[help]
+	freyja.doc	[help]
+	fsf.doc		[help]
+	ftutoria.doc	[help]
+	league.doc	[help]
+	makeexm.doc
+	moon.doc
+	thorabk.doc
+	thorcont.doc
+	thornumb.doc
+	thorpage.doc
+	thorpbk.doc
+	thorres.doc
+	thortext.doc
+	warranty.doc	[help]
+
+do:
+
+	copy <file> <wherever you put your documentation>
+
+Consult freyja.doc for search path information.  The files marked
+[help] are only required for the help functions; the editor works fine
+for all other purposes without them.  However, if you install them,
+you should install them in your search path.
+
+5) If you want to run a standard resource file, do:
+
+	copy inibmpc.ri <someplace in your search path>\freyja.ri
+
+Note that you are renaming the file as part of the copy.
+
+6) If you want to make any changes in the resource file, then you will
+want to review these files:
+
+	*.res
+	resource.doc
+	thorres.doc
+
+The mechanics of the change are:
+
+	<edit *.res and make the changes>
+	thorres -c 437 -l en -f i freyja.res -h frres.h
+	copy freyja.ri <someplace in your search path>
+
+Notes:
+
+	- replace the "en" with "dk" if you are using Danish messages
+	- replace the "437" with "850" if you are using code page 850
+	- replace the "437" with "852" if you are using code page 852
+	- replace the "437" with "865" if you are using code page 865
+
+
+---------- from freyja.exe file --------------------
+
+1) Be on an MS/DOS host or one that can run MS/DOS executables.
+
+2) Create a directory to hold the files.
+
+3) Do:
+
+	cd [[the destination directory]]
+	[[the name of the freyja2.exe file on your system]]
+
+4) Follow the steps in the first installation starting with step 3.
+
+
+---------- from freyja.tar file --------------------
+
+1) Be on a Unix host or one with a tar command.
+
+2) Create a directory to hold the files.
+
+3) Do:
+
+	cd [[that directory]]
+	tar xvf [[the name of the freyja.tar file on your system]]
+
+4) Transfer the files to an MS/DOS system.  Don't forget that files
+with names of these forms:
+
+	*.exe
+	*.exm
+	*.icn
+	*.ri
+
+must be transferred in "binary" mode.  Other files are text files and
+follow the Unix convention of using single LF's for newlines.  Thus,
+newlines must be converted to CR/LFs for MS/DOS use.  This conversion
+can be made by reading in and writing out each file using the MS/DOS
+version of Freyja, or by a Replace String command in the Unix version.
+
+5) Follow the steps in the first installation starting with step 3.
+
+
+---------- from freyja.tar.z file --------------------
+
+1) Be on a Unix host or one with gunzip and tar commands.
+
+2) Create a directory to hold the files.
+
+3) Do:
+
+	cd [[that directory]]
+	gunzip < [[the name of the freyja.tar.Z file on your system]] |
+		tar xvf - 
+
+4) Transfer the files to an MS/DOS system.  Don't forget that files
+with names of these forms:
+
+	*.exe
+	*.exm
+	*.icn
+	*.ri
+
+must be transferred in "binary" mode.
+
+5) Follow the steps in the first installation starting with step 3.
+
+
+---------- changing the C code --------------------
+
+You can make many changes by simply editing the resource file.  If you
+want to change the C code, do:
+
+1) In lib.h, make sure that the correct system constant is #defined.
+
+2) Edit turboc.cfg to suit your system.
+
+3) Make it:
+
+	copy makefile.msd makefile
+	[[edit makefile to select the regular, system-manager compliant,
+		or no-calculator version]]
+	make

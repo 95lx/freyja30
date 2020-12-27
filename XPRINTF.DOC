@@ -1,0 +1,152 @@
+		 XPRINTF:  Extended version of PRINTF
+
+			   Craig A. Finseth
+			    9 October 1992
+
+
+OVERVIEW
+
+The XPRINTF functions provide a versions of printf and sprintf with
+extended functionality.  Most printf functions are supported.
+
+
+
+FUNCTIONS
+
+	void xprintf(const char *format, ...)
+
+Formats the arguments as specified by the format string (see below).
+All output is buffered (in 1024 byte chunks) and sent with one
+"write(1,...)" call.  Fputs was not used because the string may
+contain NULs.
+
+	void xdprintf(const int fd, const char *format, ...)
+
+As xprintf except the all output is sent to file descriptor FD.
+
+	void xeprintf(const char *format, ...)
+
+As xprintf except the all output is sent to standard error, file
+descriptor 2.
+
+	void xsprintf(char *string, const char *format, ...)
+
+As xprintf except that the formatted output is stored in the string
+STRING.  STRING is assumed to be long enough.  If the resulting string
+contains NULs, STRING will appear to be truncated.
+
+	void xprintf_set_text(FLAG istext)
+
+Sets the internal text processing mode (default is on).  If on,
+expands \n characters in format strings and %s output to
+operating-system-dependant newlines.
+
+	FLAG xprintf_get_text(void)
+
+Returns the current text processing mode.
+
+
+THE FORMAT STRING
+
+All characters except "%" print as themselves.  "%" introduces a
+format item.  "%%" prints as "%".  The general format is:
+
+	%<digits><character>
+
+The character specifies how the formatting should be done.  The digits
+form a number (the argument) which provides information about how to
+format.  Digits are not required.  If the digits are "*", the next
+argument is fetched and its value is used as the argument.  The
+upper/lower case of the formatting character is ignored.
+
+Formatting characters:
+
+Control
+
+%[a%;b..%:z%]	Case/If statement.  The next argument is fetched.  If
+		it is zero, the first text (A) is formatted.  If the
+		next argument is one, text B is formatted.  Texts are
+		separated by "%;".  "%:" serves as an else clause.
+		Case/ifs do not nest.
+
+%(a%)		Loop.  The next argument is fetched and the text is
+		repeated the specified number of times.  Loops do not
+		nest.
+
+%r		Recursion.  The next two arguments are fetched.  The
+		first one indicates a format string to be interpreted
+		and the second one is a pointer to an array of
+		argument values.
+
+Numbers
+
+%#,		Format an int as a signed, decimal number with commas
+		every three digits.  # is the field width to use NOT
+		COUNTING THE COMMAS.  If the number is smaller than
+		the field width, it is right justified and space
+		filled.  If the number is larger than the field width,
+		it will spill off to the right.
+
+%#d		Format an int as a signed, decimal number.  # is the
+		field width to use.  If the number is smaller than the
+		field width, it is right justified and space filled.
+		If # starts with a leading zero, the field is zero
+		filled instead of space filled.  If the number is
+		larger than the field width, it will spill off to the
+		right.
+
+%#h		Format a long as an unsigned, hexadecimal number.  #
+		is the field width to use.  If the number is smaller
+		than the wfield width, it is right justified and space
+		filled. If # starts with a leading zero, the field is
+		zero filled instead of space filled.  If the number is
+		larger than the field width, it will spill off to the
+		right.
+
+%#l		Format a long as a signed, decimal number.  # is the
+		field width to use.  If the number is smaller than the
+		field width, it is right justified and space filled.
+		If # starts with a leading zero, the field is zero
+		filled instead of space filled.  If the number is
+		larger than the field width, it will spill off to the
+		right.
+
+%#o		Format an int as an unsigned, octal number.  # is the
+		field width to use.  If the number is smaller than the
+		field width, it is right justified and space filled.
+		If # starts with a leading zero, the field is zero
+		filled instead of space filled.  If the number is
+		larger than the field width, it will spill off to the
+		right.
+
+%#u		Format an int as an unsigned, decimal number.  # is the
+		field width to use.  If the number is smaller than the
+		field width, it is right justified and space filled.
+		If # starts with a leading zero, the field is zero
+		filled instead of space filled.  If the number is
+		larger than the field width, it will spill off to the
+		right.
+
+%#x		Format an int as an unsigned, hexadecimal number.  #
+		is the field width to use.  If the number is smaller
+		than the field width, it is right justified and space
+		filled. If # starts with a leading zero, the field is
+		zero filled instead of space filled.  If the number is
+		larger than the field width, it will spill off to the
+		right.
+
+Strings
+
+%#s		The argument is a pointer to a NUL-terminated array of
+		characters.  Copy that string to the output.  # is a
+		field width.  Padding is always with spaces on the right.
+
+%c		Format an int as a character.
+
+%#z		Output a NUL character.  # is a repeat count.
+
+%#DEL		(Where DEL is the delete character, ^?, 127 decimal.)
+		Output a DEL.  # is a repeat count.
+
+%#SP		(Where SP is the space character, 32 decimal.)  Output
+		a Space.  # is a repeat count.

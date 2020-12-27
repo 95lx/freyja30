@@ -1,0 +1,97 @@
+		    LIB:  General Library Routines
+
+			   Craig A. Finseth
+	 Copyright 1985,6,7,8,9,90,1,2,3 by Craig A. Finseth
+
+
+OVERVIEW
+
+These files provide a variety of useful library functions.
+
+
+USAGE
+
+Each source file should do:
+
+	#include "lib.h"
+
+
+FUNCTION INDEX AND SUMMARY
+
+Functions in LIB.C (documentation is with each function):
+
+lowcase		lowercase a string
+max		replacement meeting ANSI C interface specifications
+min			"			"
+PadString	pad a string with blanks
+PSetExt		set a filename extension
+reverse		reverse the bytes in a string
+sfindin		find first character in a string (case-independant)
+sfindnotin	find first character not in a string (case-independant)
+sindex		find character (case-independant)
+SToAny		check and convert a string to a number (base determined by #)
+SToN		check and convert a string to a number (base specified)
+strequ		compare two strings (case-independant)
+strgt		compare two strings (case-independant)
+strnequ		compare at most n bytes of two strings (case-independant)
+TrimNL		remove the trailing newline (if any) from a string
+upcase		uppercase a string
+xabs		absolute value
+xisalpha	is alphabetic?
+xisdigit	is a digit?
+xisgray		contrast with xiswhite
+xislower	is it lower case?
+xisupper	is it upper case?
+xiswhite	is it whitespace?
+xisxdigit	is a hexadecimal digit?
+xstrcpy		as per ANSI C strcpy, but works with overlapping strings
+xtolower	convert to lower case
+xtoupper	convert to lower case
+
+
+Functions in LIBPARSE.C (documentation is in PARSE.DOC):
+
+Parse_Open	open a file
+Parse_Close	close it
+Parse_A_Line	parse the next line
+Parse_Line	return line number
+
+
+Functions in LIBREADE.C (documentation is at start of file and with each
+function):
+
+Read_Init	initialize
+Read_Fini	terminate
+Read_File	return file name
+Read_Line	return line number
+Read_Pipe	set input descriptor
+Read_Token	return next token
+Read_Untok	unget a token
+
+
+Functions in LIBSTREA.C (documentation is with each function):
+
+Str_In_Open	open input file
+Str_In_Close	close input flie
+Str_In_Block	read a block
+Str_In_Char	read a character
+Str_In_GetText	get text mode
+Str_In_SetText	set text mode
+Str_In_Unchar	unget a character
+Str_Out_Open	open output file
+Str_Out_Close	close ouput file
+Str_Out_Block	write a block
+Str_Out_Char	put a character
+Str_Out_GetText	get text mode
+Str_Out_SetText	set text mode
+Str_Out_Str	put a string
+
+
+Functions in XPRINTF.C (documentation is in XPRINTF.DOC):
+
+xprintf		printf replacement
+xdprintf	printf replacement, write to a file descriptor
+xerintf		printf replacement, write to a std error
+xsprintf	sprintf replacement
+xprintf_set_text set text mode
+xprintf_get_text get text mode

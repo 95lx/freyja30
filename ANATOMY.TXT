@@ -1,0 +1,1691 @@
+		      Anatomy of an Application
+			       -- or --
+	       What HP Don't Tell You About Developing
+	      System Manager Applications for the HP95LX
+
+				  by
+			   Craig A. Finseth
+	       Imperial College, London, September 1992
+
+
+	[ This version has been revised slightly to take into account
+	some of the changes in Version 2.0 of MemUtil. ]
+
+This paper describes how an HP95LX system manager-compliant
+application is put together.  It tries to cover the various things
+that HP left out of their documentation.  It assumes that you:
+
+- know what an HP95LX is,
+- have used one enough to understand what the system manager is,
+- are generally familiar with C and Intel assembly language programming,
+- know the overall structure of the 8086-series CPU (registers,
+segments, etc.),
+- have a copy of the HP95 Internal Documentation supplied by HP to
+their developers, and
+- have a copy of the HP95 development tools supplied by HP (available
+via anonymous FTP).
+
+Essentially, this paper does not _replace_ HP's documentation, it
+_supplements_ it.
+
+Code examples are from the MemUtil and Freyja applications written by
+the author.  These are both freely available (see the last section),
+and the distributions include the full source code.
+
+All of that said, let's dive in.
+
+
+SEGMENT STRUCTURE
+
+A system manager-compliant application (from now on, just called "an
+application") starts life as an MS/DOS .EXE file.  Either the tiny
+(code + data up to 64 KBytes) or small (both code and data can be up
+to 64 KBytes each) model can be used.  Almost everyone except the
+Forth people use the small model, as there is no advantage to using
+the tiny model.
+
+The program's code space must be "pure" (i.e., no data can be stored
+there).  The system manager tracks which part of the application is
+code and which part is data.  Only one code area is allocated in the
+95, and that area is shared among all applications.  When a non-ROM
+application is activated, its code is swapped into that area.  The old
+code is simply discarded; it is not saved back to disk (memory).
+Hence, if an application were to modify its code segment, that
+modification can be discarded at any time. Each application has a
+separate data area, and that area is never swapped out (it may be
+moved, though, anytime the system manager is invoked).
+
+Other general notes:
+
+- Only system manager (preferred) and documented MS/DOS calls should
+be used.  Going directly to the hardware is _not_ advised.
+
+- They really mean that for the serial port: there are a number of
+bugs / oddities about the serial port hardware.
+
+- They mean that a little less about the video hardware.  However,
+unlike the ROM BIOS routines, the system manage display routines are
+fairly fast so you have much less incentive to go around them than
+when writing traditional MS/DOS programs.
+
+- Everyone will ignore this recommendation about the keyboard, in
+particular for various TSRs.  However, a real system-manager compliant
+application _must_ only obtain keyboard input by means of the
+m_event-related calls.
+
+- Applications _must_ do their own memory management using system
+manager or MS/DOS calls.  Do not use language-supplied primitives, as
+they assume a pure MS/DOS environment and are apt to get confused by,
+for example, having the data segment move around beind their backs.
+
+- FAR calls and data references must be calculated at run time.  (See
+the full description of the fixup bug presented in a later section.)
+
+All of that stuff sounds good, but where's some code?  Here is the
+first code snippet.  This code sets up the segment structure for the
+application.  It _replaces_ the c0s.obj module ordinarily linked in.
+This -- like all examples -- is for Borland C, but will work with
+Microsoft C with a few minor changes:
+
+	DOSSEG			; macro that defines segment structure
+	.model	small		; specifies model
+	.stack	10240		; this defines your stack size
+	.data?			; start data segment
+segpad	db	15 dup (?)	; this is unused, but ensures that
+				; the code ends in a different
+				; paragraph from where the usable data
+				; starts
+	.code			; switch to code
+	org	10H		; skip 16 bytes
+	end			; that's it, the program counter will
+				; drop through to whatever is next
+
+Aside from this different object header (and a host of special calls
+and assumptions within the program!), there are only two differences
+between .EXE files and their corresponding .EXM application files.
+
+First, the first two bytes of the .EXE file are set to a different
+"magic number" than that used for .EXE files.  In this case, the bytes
+are set to 0x44 and 0x4c.  This changed number tells the system
+manager that the file is a system manager-compliant application.
+
+Second, the (unused) overlay count field (bytes 26 and 27 from the
+start) are patched to the location of the divider between the code
+segment and the data segment.  This value is used by the system
+manager to figure out how much of your application can be shared. (The
+overlay count field must be unused, as the total code space can be at
+most 64 KBytes.)
+
+For precise details of the changes, see the "makeexm.c" file included
+with the MemUtil and Freyja distributions.
+
+
+MAIN LOOP
+
+Up above, the comment said that the program counter will drop through
+to whatever is next.  So, what's next?  This:
+
+static FLAG isterm = FALSE;	/* are we quitting the program? */
+
+void
+main(void)
+	{
+	EVENT e;
+
+	m_init();
+
+	e.kind = E_KEY;
+	do	{
+		if (e.kind == E_KEY) Display();
+
+		m_event(&e);
+		switch (e.kind) {
+
+		case E_NONE:
+			m_telltime(2, -3, 23);
+			break;
+
+		case E_KEY:
+			/* lots more code */
+			break;
+
+		case E_ACTIV:
+			Refresh();
+			Display();
+			break;
+			}
+		} while (!isterm && e.kind != E_TERM);
+	m_fini();
+	}
+
+The main() routine has a declaration that conforms to the ANSI-C
+standard, but is somewhat unusual.  It accepts no parameters as the
+system manager has no concept of a command line, and returns no value.
+
+The central local variable is an event.
+
+The program starts by calling m_init(), which sets things up for the
+system manager.  This, like all system manger calls, is actually a
+macro.  It looks like this:
+
+#define SC_PM		6
+
+#define F_M_INIT	(SC_PM * 256) + 0
+#define m_init()	c_service(F_M_INIT)
+
+(This code Copyright by Lotus Development Corp.) This call passes one
+parameter to the c_service() routine.  This parameter tells, using a
+tedious but simple coding scheme, which call to invoke.  A call that
+takes parameters uses a function prototype to cast the parameter to
+the proper type.  For example, the m_event() call looks like:
+
+#define SC_EVENT	1
+
+#define F_M_EVENT	(SC_EVENT * 256) + 0
+#define m_event(a)	\
+	c_service(F_M_EVENT,(void far *)(a) )
+
+(This code Copyright by Lotus Development Corp.) Values are returned
+using call-by-reference (you pass a pointer to a buffer) or, if the
+value fits into a single, 16-bit value, as a normal return in the AX
+register.  The carry flag and other such holdovers from assembly
+language are not used.  (This is the last function calls whose
+definition we will expand.)
+
+What is this c_service() routine?  It is an assembly language stub
+that links between the C code and the system manager call.  It looks
+like this:
+
+_c_service proc near
+	push	BP		; save old base pointer
+	mov	BP,SP		; set up for base-relative addressing
+	xchg	DI,[BP+4]	; put operation code in DI, and old
+				; contents of DI where the operation
+				; code was (this is presumably
+				; restored by the system manager code)
+	pop	BP		; clean up the stack a little
+	int	60H		; invoke the system manager
+	ret			; all done
+_c_service endp
+
+The version of this routine supplied by HP has hooks for patching the
+int instruction's 60H to 61H.  These are probably left over from
+internal development as there is no way to make use of that hook since
+you are not allowed to alter your code image.
+
+Returning to our top-level loop, we have:
+
+	e.kind = E_KEY;
+	do	{
+		if (e.kind == E_KEY) Display();
+
+The initialization of e.kind provides for a clean loop structure. The
+first time -- and each time through the loop after a key press -- the
+Display() routine is called.  This routine constructs (almost all) of
+the display and will be discussed later.
+
+The program then calls the m_event() routine to obtain the next event.
+MemUtil only handles three types of events.
+
+		m_event(&e);
+		switch (e.kind) {
+
+		case E_NONE:
+			m_posttime();
+			break;
+
+		case E_KEY:
+			/* lots more code */
+			break;
+
+		case E_ACTIV:
+			Refresh();
+			Display();
+			break;
+			}
+
+The E_NONE event is returned whenever the event manager hasn't got
+anything else to return.  In an idle, running system, this event will
+be returned to the active application about every half-second.  It is
+used for updating displays, in this case, the time of day clock update
+handled with m_posttime().
+
+The E_KEY event is returned when a keystroke is available.  We will go
+into this process in more depth later.
+
+The E_ACTIV event is returned when your application is being "woken
+up."  From your application's point of view, the following steps
+happen during the deactivate / activate cyle started when the user
+selects another application:
+
+- You are running fine, and have called m_event(), so your application
+is blocked waiting on input.
+
+- The user presses the "hot key" for another application.
+
+- The m_event() call returns with a E_DEACT event.
+
+- You do whatever cleanup is required (for example, updating the
+clipboard), then call m_event() again.  At this point, you have been
+deactivated.
+
+- Your application hangs for a long time.
+
+- Eventually, the user presses the "hot key" for your application.
+
+- The m_event() call returns with a E_ACTIV event.
+
+- Your application gets itself started again.
+
+In MemUtil's case, getting started involves calling the Refresh()
+routine to update any changed data (this application's purpose is to
+read and display system data, so it has to fetch any changed data),
+then calling Display() to reconstruct the display.
+
+Other events that can be returned are:
+
+- E_BREAK: a Control-Break has been encountered.
+
+- E_TERM: your application is being shut down (for example, the user
+has requested closure from the low memory screen).  The next call to
+m_event() won't return but it is nicer if you close down and clean up
+by calling m_fini().
+
+- E_ALARM_EXP: your application's alarm has expired.
+
+- E_ALARM_DAY: daily chance to set an alarm.
+
+- E_TIMECHANGE: the system date or time has been changed.
+
+Finally, the main loop is closed with this code:
+
+		} while (!isterm && e.kind != E_TERM);
+	m_fini();
+	}
+
+The isterm flag is a global.  When the loop exits, the program calls
+m_fini(), which never returns.
+
+
+HANDLING KEYBOARD INPUT
+
+The main loop handles all events.  Most events are of a "housekeeping"
+nature and your program must handle them properly or it won't work.
+Keyboard events, on the other hand, are what gives your application
+its "feel."  Before we look at too many details, let's review the
+overall structure of MemUtil and see what we want to implement.
+
+MemUtil is organized around "tasks" or "views" of six types of data.
+The tasks are help, short applications, long applications, memory
+chains, memory, and characters.  All six are presented to the user in
+the same way: the task appears as a one-dimensional array of something
+and the user is "at" a current selection.  The details vary among the
+tasks:
+
+			array of...	can see...at a time
+
+help			lines			12
+short applications	applications		12
+long applications	applications		1
+chains			chain links		12
+memory			paragraphs		6
+characters		character set entries	12
+
+(From now on, I'll use the term "object" to refer to the "something"
+for the current task.) I use the following enum to list the task
+types:
+
+	/* display status */
+enum dstate { DHELP, DAPPS, DAPLONG, DCHAINS, DMEM, DCHARS };
+
+and have an array of structures that holds the current status of each
+task:
+
+	/* task control structures */
+struct task {
+	enum dstate disp;	/* which type of display to use */
+	unsigned height;	/* height of screen in objects */
+	unsigned start;		/* first object */
+	unsigned num;		/* number of objects */
+	unsigned cur;		/* current object, >= 0 and < num */
+	};
+static struct task t[] = {
+	{ DHELP, HEIGHT, 0, 0, 0 },
+	{ DAPPS, HEIGHT, 0, NUMAPPS, DEFAULTAPP },
+	{ DAPLONG, 1, 0, NUMAPPS, DEFAULTAPP },
+	{ DCHAINS, HEIGHT, 0, 1, 0 },
+	{ DMEM, HEIGHT / 2, 0, 64, 0 },
+	{ DCHARS, HEIGHT, 0, 512, 0 } };
+
+For the short applications, long applications, and characters tasks,
+the only structure entry that changes is the current object.  For the
+help and chains tasks, the number of items is set up when the program
+starts and remains essentially unchanged.  The memory task is the only
+one that regularly varies the start and number of items entries.  The
+current task is tracked with a pointer variable:
+
+static struct task *curt = &t[DAPPS];		/* current task */
+
+The program does two forms of sanity checking at the top of the main
+loop.  While this code could be placed somewhere else, putting the
+check here means that it need not be duplicated.
+
+First, the program checks to ensure that the current object is within
+the array bounds:
+
+		if (curt->cur > curt->num - 1) curt->cur = curt->num - 1;
+		if (curt->num == 0) curt->cur = 0;
+
+Since the values are all unsigned, it is meaningless to check for
+negative values.
+
+Second, the short application and long application tasks always have
+the same current object.  We slave them together with this code:
+
+		/* ensure that the APPS and APLONG selections stay in sync */
+		if (curt == &t[DAPPS]) t[DAPLONG].cur = curt->cur;
+		if (curt == &t[DAPLONG]) t[DAPPS].cur = curt->cur;
+
+MemUtil's main display is modeless: pressing a key always has the same
+effect, regardless of the current task.  (Of course, the menu, file
+getter, and dialog boxes are modes, but they are not part of the main
+screen.)  The program implements this "modelessness" by having most
+functions simply ignore the current state.  For example, this code
+implements the F1 key, which selects the help task:
+
+			case 0x3b00:		/* F1 */
+				Push_Task();
+				curt = &t[DHELP];
+				break;
+
+The Push_Task routine saves the current task for use with the Esc key.
+
+This "modelessness" is not quite perfect: the program implements two
+useful "warts."  The first of these is the Enter key:
+
+			case CR:
+				if (curt == &t[DAPPS] || curt == &t[DAPLONG]) {
+					Push_Task();
+					curt = &t[DMEM];
+					curt->start = acbs[t[DAPPS].cur].ds;
+					curt->num = APPSEGSIZE;
+					curt->cur = 0;
+					}
+				else if (curt == &t[DCHAINS]) {
+					Push_Task();
+					curt = &t[DMEM];
+					curt->start = links[t[DCHAINS].cur].seg;
+					curt->num = links[t[DCHAINS].cur].size;
+					curt->cur = 0;
+					}
+				break;
+
+This code simply "redirects" the function in this manner:
+
+	in			makes it appear as if this key was typed:
+
+	short application	F5 (long application)
+	long application	F4 (memory)
+	chains			F4 (memory)
+
+But, there's more.  If you switch _from_ the long application task, it
+automatically initializes the memory task to point to the current
+application's data space.  If you switch from the chains task, it
+automatically initializes the memory task to point to the current
+chain area.
+
+The fact that all tasks use the same model makes it very easy to
+implement the arrow keys.  The Home key moves you to the first object
+and the End key moves you to the last:
+
+			case 0x4700:		/* Home */
+				curt->cur = 0;
+				break;
+
+			case 0x4f00:		/* End */
+				curt->cur = curt->num - 1;
+				break;
+
+The Up and Down Arrow keys move you by one object.  Note the special
+checking required due to the use of unsigned values:
+
+			case 0x4800:		/* Up */
+				if (curt->cur >= 1) curt->cur--;
+				break;
+
+			case 0x5000:		/* Down */
+				curt->cur++;
+				break;
+
+The PgUp and PgDn keys move you up one screen's worth of objects:
+
+			case 0x4900:		/* PgUp */
+				if (curt->cur >= curt->height)
+					curt->cur -= curt->height;
+				else	curt->cur = 0;
+				break;
+
+			case 0x5100:		/* PgDn */
+				curt->cur += curt->height;
+				break;
+
+The Left and Right Arrow keys have no meaning in a one-dimensional
+array model, and I wanted to be able to move by larger steps than one
+screen.  Hence, I have these keys move by 10% of the objects:
+
+			case 0x4b00:		/* Left */
+				amt = curt->num / 10;
+				if (amt < 1) amt = 1;
+				if (curt->cur >= amt)
+					curt->cur -= amt;
+				else	curt->cur = 0;
+				break;
+
+			case 0x4d00:		/* Right */
+				amt = curt->num / 10;
+				if (amt < 1) amt = 1;
+				curt->cur += amt;
+				break;
+
+The handling of the rest of the keystrokes will be discussed in later
+sections.
+
+
+DISPLAYING THE SCREEN
+
+The keyboard input handling defines part of your application's
+personality: the display establishes the rest.  The HP Internal
+Documentation suggests (when handling E_ACTIV events) that you
+regenerate the display from first data instead of storing a copy of
+the screen.  I chose to follow the suggested philosophy throughout
+MemUtil (Freyja does this regeneration too, but its redisplay was
+devised long before the 95 and this method was selected for different
+reasons).
+
+The display code is divided into two parts: the generic "framing" code
+and the task-specific code.
+
+I added a new (to the HP95) display feature: a slider bar that shows
+the approximate size and location of the current screen in relation to
+the entire array of objects.  Much of the apparent complexity of the
+framing code is to implement this feature.  This feature entailed two
+major design choices.
+
+First, a slider bar would in general be more familiar if it ran along
+the left or right side of the display than along the top.  However,
+screen space is at a premium in the HP95, and the existing application
+standards had already defined a standard display structure: the double
+bar in the second display line.  I chose to elaborate on that
+structure by making use of that bar instead of inventing something
+incompatible.  As a side effect of this decision, the separation of
+framing code and per-task code was kept clean as the per-task code
+could display complete lines.
+
+Second, I chose to implement the slider as a single "pinched" line.
+There are a number of other characters that I could have selected.
+However, Edward Tufte in his "The Visual Display of Quantitative
+Information" (1983, Graphics Press, Cheshire, Connecticut) recommends
+minimizing the amount of "ink" used, and I felt that the minimal
+approach improved the quality of the display.
+
+The framing code looks like this:
+
+void
+Display(void)
+	{
+	char buf[41];	/* we know how big the screen is */
+	int start;	/* this stuff is for calculating the slider bar */
+	int stop;
+	unsigned ustart;
+	unsigned ustop;
+	unsigned tmp;
+
+	VidCurOff();	/* force the cursor off */
+
+			/* display the top line */
+	m_disp(-3, 0, "MemUtil V2.0                            ", 40, 0, 0);
+
+			/* build the slider bar, using 16-bit
+			arithmetic */
+	memset(buf, '\xCD', 40);
+
+	if (curt->num > 0) {
+		if (curt->num > 512) {	/* losing precision isn't so bad... */
+			tmp = curt->num / 40;
+			ustart = curt->cur / tmp;
+			if (ustart > 39) ustart = 39;
+			ustop = (curt->cur + curt->height) / tmp;
+			if (ustop <= ustart) ustop = ustart + 1;
+			if (ustop > 40) ustop = 40;
+			memset(&buf[ustart], '\xC4', ustop - ustart);
+			}
+		else	{	/* don't worry about overflow */
+			start = (curt->cur * 40) / curt->num;
+			if (start < 0) start = 0;
+			if (start > 39) start = 39;
+			stop = ((curt->cur + curt->height) * 40 ) / curt->num;
+			if (stop <= start) stop = start + 1;
+			if (stop > 40) stop = 40;
+			memset(&buf[start], '\xC4', stop - start);
+			}
+		}
+	m_disp(-2, 0, buf, 40, 0, 0);
+
+			/* select the per-task display */
+	switch (curt->disp) {
+
+	case DHELP:	Disp_Help();	break;
+	case DAPPS:	Disp_Apps();	break;
+	case DAPLONG:	Disp_ApLong();	break;
+	case DCHAINS:	Disp_Chains();	break;
+	case DMEM:	Disp_Mem();	break;
+	case DCHARS:	Disp_Chars();	break;
+		}
+
+			/* put up the function key labels; note the
+			"1" in the second-to-last position that
+			specifies inverse video */
+	m_disp(11, 0, "Help    Apps    ApLong  Para    Length  ", 40, 1, 0);
+	m_disp(12, 0, "    Chains  Mem     Chars   Key   Offset", 40, 1, 0);
+	}
+
+In general, I have found the system manager display routines to be
+fast and well-matched to the required functionality.  However, their
+screen model has line -3 at the top and line 12 at the bottom.  I have
+found no good reason for this (other than historical), and it has
+caused me numerous bugs during development.
+
+[ The historical reason for this choice stems from the evolution of
+the system manager.  Most system manager interface functions are taken
+from the Lotus internal development environment.  This explains both
+why they are so well-suited to an application's needs and also why
+they are so idiosyncratic.  Anyway, a standard Lotus screen has three
+lines of heading before you get to the spreadsheet, which then starts
+at line zero.  That explains the -3.  However, an HP95 application
+will in general have only two lines of header (title and double bar)
+before you get to the screen, which therefore starts at line -1.
+That's life. ]
+
+The per-task display routines all do essentially the same job, but
+they vary in how complicated it is to build the display.  The help
+task's routine is simple and will be used to illustrate the basic
+structure:
+
+void
+Disp_Help(void)
+	{
+	char buf[BUFFSIZE];
+	int cnt;
+
+			/* Loop until you get to the end of the screen or
+			run out of objects. */
+	for (cnt = 0; cnt < HEIGHT && cnt + curt->cur < curt->num; cnt++) {
+
+			/* Put into a buffer, with 40 trailing spaces
+			xsprintf is a private version of sprintf that
+			has somewhat different performance tradeoffs. */
+		xsprintf(buf, "%s                                        ",
+			Help_Line(curt->cur + cnt));
+
+			/* Display the first 40 characters of the
+			buffer. */
+		m_disp(-1 + cnt, 0, buf, 40, 0, 0);
+		}
+
+			/* If you ran out of lines and have not run
+			out of screen, blank the rest of the screen. */
+	if (cnt < HEIGHT) {
+		m_clear(-1 + cnt, 0, HEIGHT - (-1 + cnt), 40); 
+		}
+	}
+
+and that's it.
+
+
+MENUS
+
+It is important that applications handle the menu bar properly.  The
+most important place is in the main event loop, and my menu key code
+is this simple:
+
+			case 0xc800:		/* MENU */
+				GetMenu();
+				break;
+
+Of course, implementing that call is a little less simple. The routine
+that does this operates in three phases.
+
+The first phase handles the declarations and menu setup.  You have to
+declare a MENUDATA structure and an EVENT structure, along with a
+couple of housekeeping variables.  (Note: this program does not make
+use of the GetMenu routine's return value.  However, Freyja does and I
+like to keep the structure of and interfaces to the routines the same
+among my programs.)
+
+FLAG
+GetMenu(void)
+	{
+	MENUDATA u;
+	EVENT e;
+	int which = 0;
+	FLAG isdone = FALSE;
+
+			/* This routine initializes the menu
+			structure.  Note the use of embedded \0
+			characters to delimit the menu entries
+			and ANSI concatenated strings to handle
+			the hex constants.  \x1a is a right
+			arrow character. */
+	menu_setup(&u, "A)\x1a" "Clip\0B)\x1a" "File\0C)\x1a"
+		"Clip(bin)\0D)\x1a" "File(bin)\0Quit\0", 5, 1, NULL, 0, NULL);
+
+	VidCurOff();	/* turn the cursor off */
+
+	menu_on(&u);	/* turn on the menus */
+
+The second phase handles the menu entry proper.  It has the same
+overall structure as the main loop.  Instead of calling the
+application's display routine, it calls menu_dis() to display the
+current menu (remember that the selected entry is highlit, so the
+"current" menu _does_ change) and the menu bar.  (The double bar
+display wasn't built into the menu routine because Lotus 1-2-3 doesn't
+use the double bar.)
+
+	e.kind = E_KEY;
+	while (!isdone) {
+		if (e.kind == E_KEY || e.kind == E_ACTIV) {
+			menu_dis(&u);
+			m_disp(-1, 0, "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD", 40, 0, 0);
+			}
+		m_event(&e);		/* get the next event */
+		switch (e.kind) {
+
+			/* You've been suspended and are back.  Do a
+			full refresh/display build.  When you come
+			around again, the menu will be redisplayed by
+			means of the above code. */
+		case E_ACTIV:
+			Refresh();
+			Display();
+			break;
+
+			/* Got a terminate, so clean up and exit. */
+		case E_TERM:
+			isterm = TRUE;
+			isdone = TRUE;
+			break;
+
+			/* Got a key. */
+		case E_KEY:
+			if (e.data == ESC) {	/* you have to handle */
+				which = -1;	/* ESC yourself */
+				isdone = TRUE;
+				}
+			else	{	/* handle all other key
+					presses; which is set to
+					0..#entries1 when an item is
+					selected */
+				menu_key(&u, e.data, &which);
+				if (which != -1) isdone = TRUE;
+				}
+			break;
+			}
+		}
+
+In the third phase, the menu interaction is over and it is time to
+actually do something.
+
+	menu_off(&u);		/* Turn off the menu display; this
+				also restores what's underneath, but
+				you're going to regenerate it
+				anyway. */
+	if (isterm) return(TRUE);	/* ESC pressed, so don't do
+					anything. */
+
+	switch (which) {
+
+	case 0:
+		/* do the first selection... */
+		break;
+
+	case 1:
+		/* do the second */
+		break;
+
+		...
+	case 4:
+		isterm = TRUE;	/* Quit selected. */
+		break;
+		}
+	return(TRUE);
+	}
+
+And that's about it.  Menus aren't all that difficult, are they?
+
+
+DISPLAYING A MESSAGE / ACCEPTING ONE KEY
+
+These are two separate, but related functions.  The first function is
+to display a one-line message and wait for the user to acknowledge it
+by pressing a key.  The second function is to display a prompt,
+accept a key of input, and return the entered key.
+
+A typical call might look lie this:
+
+	key = GetKey("Press key to view");
+
+(This example is part of the code that handles the F8 key.  The
+function on this key asks the user to press any key, then brings up
+the Characters task with that key selected.)
+
+The GetKey routine looks like this:
+
+int
+GetKey(char *str)
+	{
+	EVENT e;
+
+	m_lock();	/* Lock out application switching.  If the
+			user presses a "hot key," it won't do anything. */
+
+			/* Display the message.  The call actually
+			displays two lines, although we never use the
+			second.  Note that the system manager calls
+			tend to take (pointer to string, length of
+			string) pairs and not use NUL-terminated
+			strings. */
+	message(str, strlen(str), "", 0);
+
+	do	{	/* Until you get a key press... */
+		m_event(&e);
+		} while (e.kind != E_KEY);
+
+	msg_off();	/* Turn off the message, which restores what
+			was underneath. */
+
+	m_unlock();	/* Turn application switching back on. */
+	return(e.data);	/* Return the keystroke. */
+	}
+
+
+ACCEPTING A STRING
+
+String entry involves another event loop.  As with menus, you must
+fully support activation, deactivation, etc.  The GetStr routine has
+this interface:
+
+	FLAG GetStr(char *prompt, char *buf, char *deflt)
+
+The first parameter is a NUL-terminated prompt string.  The second
+parameter is a pointer to an 80-character long buffer to hold the
+response.  The third parameter is a pointer to a default value, which
+must be less than 80 characters long.  The routine returns True on
+successful string entry or False if there was a problem.  As with the
+GetMenu routine, it also sets isterm if the application should exit.
+
+MemUtil uses the GetStr routine in only one place: when accepting a
+hexadecimal value.  Thus, the call looks like this:
+
+	char buf[80];	/* response buffer */
+	char buf2[80];	/* default buffer */
+
+		/* construct the default value from the passed-in
+		(numeric) default value */
+	xsprintf(buf2, "%x", *val);
+		/* call the routine, using the passed-in prompt */
+	if (!GetStr(prompt, buf, buf2)) return(FALSE);
+
+Here's the routine itself:
+
+FLAG
+GetStr(char *prompt, char *buf, char *deflt)
+	{
+	EDITDATA ed;		/* our first exposure to this */
+	EVENT e;		/* you've seen this one before */
+	FLAG isdone = FALSE;
+	FLAG ok = TRUE;
+	int result;
+
+		/* Set up the edit data structure. It gets loaded
+		with the default value, the maximum input length (16),
+		the prompt, and the (unused) second prompt line. */
+	edit_top(&ed, deflt, strlen(deflt), 16, prompt, strlen(prompt), "", 0);
+
+		/* You've seen this before.  We use edit_dis to
+		update the display. */
+	e.kind = E_KEY;
+	while (!isdone) {
+		if (e.kind == E_KEY || e.kind == E_ACTIV) edit_dis(&ed);
+		m_event(&e);
+		switch (e.kind) {
+
+		case E_ACTIV:
+			Refresh();
+			break;
+
+		case E_TERM:		/* handle termination */
+			isterm = TRUE;
+			ok = FALSE;
+			isdone = TRUE;
+			break;
+		
+		case E_BREAK:		/* handle break key */
+			ok = FALSE;
+			isdone = TRUE;
+			break;
+
+		case E_KEY:
+			if (e.data == ESC) {	/* handle Esc key */
+				ok = FALSE;
+				isdone = TRUE;
+				}
+			else	{	/* handle each keystroke */
+				edit_key(&ed, e.data, &result);
+				if (result == 1) isdone = TRUE;
+				}
+			break;
+			}
+		}
+
+	Display();	/* Put the display back: no routine to do
+			this for you. */
+	if (!ok) return(FALSE);		/* cancel */
+	xstrcpy(buf, ed.edit_buffer);	/* have a valid string, so
+					copy it to the return
+					buffer */
+	return(TRUE);
+	}
+
+
+USING THE FILE GETTER
+
+Now we come to the file getter.  This is the last -- and messiest --
+of the event loops.  Much of it will be familiar, yet it has its own
+twists.
+
+The interface is:
+
+	FLAG GetFile(char *prompt, char *fname, FLAG usestar)
+
+As before, you pass it a prompt string and a pointer to a filename.
+The area pointed to by this filename must be at least 79 character
+long (the maximum legal length of an MS/DOS file name.)  It serves
+_both_ as the place to return the new name and as the source for the
+default value, so be sure to initialize it before calling this
+routine.  If usestar is True, force the file name part to "*.*", thus
+bringing up a display of all files in the directory.  The routine
+returns True on successful file name entry or False if there was a
+problem.  As with the GetMenu routine, it also sets isterm if the
+application should exit.
+
+The routine uses these local variables:
+
+	FILEINFO fi[100];	/* Can display up to 100 files at
+				once.  Change this constant to change 
+				the maximum number of files that can
+				be displayed at once.*/
+	FMENU f;		/* file menu extra data structure */
+	EDITDATA ed;		/* you've seen these */
+	EVENT e;
+	FLAG isdone = FALSE;
+	FLAG ok = TRUE;
+	char dn[FNAMEMAX];	/* working copy of the directory part */
+	char fn[FNAMEMAX];	/* working copy of the file part */
+	char *cptr;		/* scratch variable */
+
+	xstrcpy(dn, fname);	/* make a copy of the name */
+
+		/* This code splits the full name into the directory
+		and file parts.  It starts at the end and searches
+		backwards until it finds a /, \, or :.  If there isn't
+		one, it sets the directory part to "". If there isn't
+		a file part, that is set to "". */
+	for (cptr = dn + strlen(dn); cptr > dn; --cptr) {
+		if (*cptr == ':' || *cptr == '/' || *cptr == '\\') break;
+		}
+	if (*cptr == ':' || *cptr == '/' || *cptr == '\\') {
+		xstrcpy(fn, cptr + 1);
+		*(cptr + 1) = NUL;
+		}
+	else	{
+		xstrcpy(fn, cptr);
+		*cptr = NUL;
+		}
+		/* If there is no file part or usestar is True, force
+		the file name to "*.*". */
+	if (*fn == NUL || usestar) {
+		xstrcpy(fn, "*.*");
+		}
+
+		/* Initialize the required parts of the file menu
+		structure. */
+	f.fm_path = dn;		/* directory name part */
+	f.fm_pattern = fn;	/* file name part */
+	f.fm_buffer = fi;	/* place to put the working names */
+	f.fm_buf_size = sizeof(fi);	/* how big (many) */
+	f.fm_startline = -2;	/* top line... *sigh* */
+	f.fm_startcol = 0;	/* left edge */
+	f.fm_numlines = 16;	/* use all lines */
+	f.fm_numcols = 40;	/* and all columns */
+	f.fm_filesperline = 3;	/* can fit this many across */
+
+		/* Now, set up the edit buffer part. Just copy these
+		values... */
+	ed.prompt_window = 1;
+	ed.prompt_line_length = 0;
+	ed.message_line = prompt;
+	ed.message_line_length = strlen(prompt);
+
+		/* clear the screen */
+	m_clear(-3, 0, 16, 40);
+
+		/* start things up */
+	if (fmenu_init(&f, &ed, "", 0, 0) != RET_OK) {
+		GetKey("can't init file getter");
+		return(TRUE);
+		}
+
+		/* the usual, you've seen all this */
+	VidCurOff();
+	e.kind = E_KEY;
+	while (!isdone) {
+		if (e.kind == E_KEY || e.kind == E_ACTIV) fmenu_dis(&f, &ed);
+		m_event(&e);
+		switch (e.kind) {
+
+		case E_ACTIV:
+			Refresh();
+			break;
+
+		case E_TERM:
+			isterm = TRUE;
+			isdone = TRUE;
+			break;
+		
+		case E_BREAK:
+			ok = FALSE;
+			isdone = TRUE;
+			break;
+
+		case E_KEY:
+			if (e.data == ESC) {	/* handle Esc */
+				ok = FALSE;
+				isdone = TRUE;
+				}
+			else	{	/* this routine has multiple
+					return values, which tell you
+					what to do */
+				switch (fmenu_key(&f, &ed, e.data)) {
+
+				case RET_UNKNOWN:	/* bad key */
+				case RET_BAD:
+					m_thud();
+					break;
+
+				case RET_OK:		/* keep goin' */
+					break;
+
+				case RET_REDISPLAY:	/* reshow the
+							screen */
+					break;
+
+				case RET_ACCEPT:	/* done, ok */
+					isdone = TRUE;
+					break;
+
+				case RET_ABORT:		/* done, cancel */
+					ok = FALSE;
+					isdone = TRUE;
+					break;
+					}
+				}
+			break;
+			}
+		}
+
+		/* turn off the display, then put ours back */
+	fmenu_off(&f, &ed);
+	Display();
+		/* copy the file name to the return buffer */
+	xstrcpy(fname, ed.edit_buffer);
+	return(ok);
+	}
+
+
+USING THE CLIPBOARD
+
+The clipboard is used for transferring data between applications
+(without retyping it, that is!).  It is a variable-sized part of
+system RAM, stored in the system manager's data space.  One object at
+a time is placed in the clipboard, although it can have as many
+representations as your application cares to create.  Given that the
+object can be composite (e.g., a column from a spreadsheet) and that
+the interpretation of the different representations is assigned by
+each application, the "one object" limit is not much of a limitation.
+
+Representations are identified by four-character tags. By convention
+every object should have a representation named "TEXT", and this
+representation should contain a pure text version of the object.  In
+this representation, newlines are stored as a bare Carriage Return
+(^M, 13 decimal) characters, unlike everywhere else in MS/DOS.
+
+MemUtil has no need to accept data from the clipboard, although Freyja
+does and so we'll see an example from Freyja for that operation.
+MemUtil does copy data into the clipboard.  The type of copying is
+specified using a menu selection. Forms are:
+
+- copy ASCII-text representation to the clipboard
+- copy binary representation to the clipboard
+- copy ASCII-text representation to a file
+- copy binary representation to a file
+
+When you make a selection, MemUtil copies the entirety of the data in
+the current task to the specified place.  For example, you might be in
+the memory task with the current view starting at paragraph 5 and
+extending for 10 paragraphs. In this case, the copy ASCII-text
+representation command would copy about 800 bytes into the clipboard
+in an 80-column version of the memory display.  The copy binary
+representation command would copy exactly 160 bytes into the clipboard
+as "raw" data.  No newline translations would be made in this case.
+In a similar fashion, if you want to save a copy of the help text,
+just select the help task and then copy to the clipboard.
+
+MemUtil's clipboard (and file copying) routines are structured in a
+way similar to the display-generating routines.  There is one
+"generic" call that opens the clipboard, dispatches to the correct
+routine, then closes the clipboard (we're ignoring the file stuff in
+this discussion) .  This routine looks like this:
+
+void
+ToClip(void)
+	{
+		/* Start talking to the clipboard. */
+	if (m_open_cb() != 0) {
+		GetKey("Can't open clipboard");
+		return;
+		}
+
+		/* Clear the current data, and sign the data that
+		we are about to write. */
+	if (m_reset_cb("MemUtil") != 0) {
+		GetKey("Can't init clipboard");
+		m_close_cb();
+		return;
+		}
+
+		/* Start a text representation (we'll only generate
+		the one). */
+	m_new_rep("TEXT");
+
+		/* Put up a message as this may take a while. */
+	message("copying to clipboard...", 23, "", 0);
+
+		/* This next call tells the display routines to
+		actually display the message.  Ordinarily, this detail
+		is handled when you ask for input.  You only need to
+		make this call if you want the display actually
+		updated, but aren't going to ask for input right
+		away. */
+	m_dirty_sync();
+
+		/* Dispatch.  The arguments are simply passed through
+		to To_Write(). */
+	switch(curt->disp) {
+
+	case DHELP:	To_Help(-1, 0);		break;
+		...
+		}
+
+		/* Close this representation. */
+	m_fini_rep();
+
+		/* If you wanted to write another representation,
+		start with another m_new_rep() call. */
+
+		/* All done writing the clipboard. */
+	m_close_cb();
+	}
+
+The following routine writes out the help text.  There is no
+difference between the ASCII and binary representations.
+
+void
+To_Help(int fd, int clip)
+	{
+	int cnt;
+	char *cptr;
+
+	isbin = FALSE;
+
+		/* For each line... */
+	for (cnt = 0; cnt < Help_Num(); cnt++) {
+
+			/* ...point to the start...  */
+		cptr = Help_Line(cnt);
+
+			/* ...call the generic write routine */
+		if (!To_Write(fd, clip, (char *)cptr, strlen(cptr))) return;
+		}
+	}
+
+This is a generic write routine.  If the global isbin is False, we
+assume that we are writing a complete line and append a newline.
+Otherwise, we just write the data.
+
+The fd and clip parameters are simply passed through the task-specific
+routines.  If fd is non-negative, it contains the file descriptor to
+write.  Otherwise, if clip is non-negative, it indicates that you
+should write to the clipboard.  The current representation is the only
+one that you can write to, so you need not specify a descriptor. (If
+neither is non-negative, you've got problems.)
+
+FLAG
+To_Write(int fd, int clip, char *buf, int len)
+	{
+		/* Handle file writes. */
+	if (fd >= 0) {
+
+			/* Write the data. */
+		if (len > 0 && write(fd, buf, len) != len) {
+			GetKey("Write Error");
+			return(FALSE);
+			}
+
+			/* If not binary, write a newline */
+		if (!isbin) {
+			if (write(fd, "\r\n", 2) != 2) {
+				GetKey("Write Error");
+				return(FALSE);
+				}
+			}
+
+			/* Done. */
+		return(TRUE);
+		}
+
+		/* Write to the clipboard. */
+	if (clip >= 0) {
+
+			/* Write the data. */
+		if (len > 0 && m_cb_write(buf, len) != 0) {
+			GetKey("Write Error");
+			return(FALSE);
+			}
+
+			/* If not binary, write a newline */
+		if (!isbin) {
+			if (m_cb_write("\r", 1) != 0) {
+				GetKey("Write Error");
+				return(FALSE);
+				}
+			}
+
+			/* Done. */
+		return(TRUE);
+		}
+	GetKey("Broken Writing...");
+	return(FALSE);
+	}
+
+As MemUtil does no pasting from the clipboard, the example routine is
+from Freyja.  Many of the application support routines differ from
+those in MemUtil, but those differences shouldn't interfere with your
+understanding of the clipboard functions.
+
+FLAG
+J_Paste(void)
+	{
+	int index;
+	int len;
+	char chr;
+	int cnt;
+
+		/* Start dealing with the clipboard. */
+	if (m_open_cb() != 0) {
+		DEchoNM("can't open clipboard");
+		return(FALSE);
+		}
+
+		/* Look up the TEXT representation (which should
+		always exist).  The index variable will contain a
+		"file descriptor" and the len variable will contain
+		the representation's length. */
+	if (m_rep_index("TEXT", &index, &len) != 0) {
+
+			/* No TEXT representation, so tell the user
+			that it is empty.  We don't know how to deal
+			with any other representations. */
+		DEchoNM("nothing to paste");
+		m_close_cb();
+		return(FALSE);
+		}
+
+		/* Remember where we started in the buffer. After the
+		paste is complete, the pasted text will be selected
+		and can be manipulated right away. */
+	BMarkToPoint(mark);
+	for (cnt = 0; cnt < len; cnt++) {
+
+			/* Read one character at a time. */
+		m_cb_read(index, cnt, &chr, 1);
+
+			/* Map Carriage Return to Newline */
+		if (chr == '\xd') chr = NL;
+
+			/* Insert it into the buffer. */
+		if (!BInsChar(chr)) break;
+		}
+
+		/* All done. */
+	m_close_cb();
+	return(TRUE);
+	}
+
+
+MORE ON FIXUPS AND A MAJOR BUG IN THE 95
+
+A .EXE file begins with a header that describes many things about the
+program.  In addition to the two fields mentioned early in this paper
+(the "magic number" and the overlay number), the header contains
+information on the initial value of the program counter, the initial
+value of the stack pointer, and so on.
+
+One field in the header is very significant to the system manager: the
+count of relocation offset entries.  This count is the length of a
+table.  Each entry in this table is four bytes long, and specifies an
+offset within the file of a place that must be updated by the loader
+as the program is being loaded.  These entries are called relocation
+offsets or, more colloquially, "fixups."
+
+(If you want to learn all about .EXE file headers, I recommend "The
+Wait Group's MS-DOS Developer's Guide, Second Edition" (1989, Howard
+W. Sams, ISBN 0-672-22630-8).  This book tells you more than you want
+to know about MS/DOS, including how fixups and memory block chains
+work.)
+
+The regular MS/DOS loader handles updating these entries and, while
+using MS/DOS on the 95, there is no problem.  However, the system
+manager must simulate some of the loader functions and there is a bug
+in this simulation.  The bug is as follows:
+
+	When loading an application for the first time (or activating
+	it after a deactivation), the system manager examines the
+	number of fixups found in the application's .EXM header.
+
+	If this number is zero, everything works perfectly.  If this
+	number is non-zero, the system manager uses a possibly
+	incorrect value.
+
+	Instead of using the value found in the file header, the
+	system manger uses the greater of the value found in the file
+	header and the value used for the last user (RAM) application.
+
+The effects of this bug are subtle.  For example, if all but one of
+your applications has zero fixups, you may never experience the
+effects of this bug.
+
+However, if you have two applications with non-zero fixups, then the
+one with more fixups will tend to work fine, but the other one will
+mysteriously fail.  I say "mysteriously" because it is difficult to
+predict the effects.  Since the bug in effect "adds" entries to the
+relocation table without adding values, the loader will relocate
+whatever values it finds there, and the relocation amount will vary
+depending upon exactly where the code is loaded.  Depending upon how
+the application is written, it may work fine even with the bug or it
+may fail in obvious or non-obvious ways.
+
+There is no known fix for this bug, but there is a work around: ensure
+that all applications that you use have no fixups.  This is easier
+said than done.  Many applications distributed on ROM cards have
+fixups and will thus exercise this bug.  If you must run an
+application with fixups, then run it as the only application (other
+than ROM applications) under the system manager and reboot
+(Ctrl-Alt-Del) before running any other user applications.  You will
+only encounter this bug when actually running user applications: they
+can still be safely present in APNAME.LST file(s).
+
+The MAKEEXM program distributed with MemUtil and Freyja differs from
+HP's E2M program in several ways that help you deal with the fixup
+problem.
+
+MAKEEXM can be invoked in one of three ways.  The basic command line
+is:
+
+	makeexm <.exm file> [<.map file>]
+
+The first parameter gives the name of a .EXE file that will be
+converted in place to a .EXM file.  If you don't enter a suffix, the
+program will assume ".EXM".  The second parameter is optional, and
+specifies the name of the .MAP file that goes with the .EXE file.  If
+you omit the parameter, the first parameter is used.  In any case, the
+extension is forced to ".MAP".
+
+This program differs from HP's E2M in three major ways.  First, it
+converts the file in place (and is thus much faster).  Second, it
+supports both Microsoft and Borland .MAP file formats.  Third, it
+prints the number of fixups in the converted program, so that you can
+see if you have any problems.
+
+The second way is used if you have existing programs and want to find
+out how many fixups these programs have. You invoke the MAKEEXM
+program this way:
+
+	makeexm -f <file(s)>
+
+The -f option tells the program to simply print the number of fixups
+in each file whose name is given.  The files are not modified.  You
+can supply as many file names as you like (sorry, no wildcards).
+
+Note that the program does not check whether the file is really a .EXE
+or .EXM file.  If you supply it with the name of a non-.EXE and
+non-.EXM file, it will print a meaningless number.
+
+The third form of invoking MAKEEXM was devised for use with Freyja.
+It looks like this:
+
+	makeexm -p <.exm file> [<.map file>]
+
+Except for the presence of the -p option, the usage is the same as
+that of the basic command line.  The -p option tells MAKEEXM to "patch
+out" all fixups.
+
+Why is this necessary?  I was able to write MemUtil in such a way that
+no fixups were generated by the compiler.  However, Freyja uses long
+(32-bit) integer arithmetic in many places and, for no reason that I
+can discern, Borland's Turbo C V2.0 always generates FAR calls to the
+"helper" routines that do the 32-bit arithmetic.  Each such FAR call
+generates a fixup.
+
+Now, a system-manager compliant application must have a code segment
+that is no more than 64 KBytes long.  Hence, all such FAR calls could
+be converted to NEAR calls.  It would be nice if the compiler handled
+this, but it doesn't.  MAKEEXM does this conversion.  Each fixup is
+patched as follows:
+
+In the .EXM file, the call looks like this:
+
+	0x9A LOW HIGH 0x00 0x00
+	               ^
+
+The 0x9A is the code for a FAR CALL instruction.  The LOW and HIGH
+values specify the offset to call.  The top two bytes are always zero,
+as our code segment is less than 64 KBytes (in other uses, these
+values need not be zero, but they always will be for an application).
+The fixup entry points to the place marked with a carat.  The MAKEEXM
+program changes these five bytes to the following:
+
+	0xE8 _nearfar LOW HIGH
+
+The 0xE8 is the code for a NEAR CALL instruction.  _nearfar is the
+address of (actually, relative distance to) a special routine.  LOW
+and HIGH are the same values as before, just moved by two bytes.
+
+In summary, we started with a FAR call to a routine.  We wound up with
+a NEAR call to a special helper routine, with the address of the
+desired routine in a convenient spot.
+
+So, how does _nearfar work?  This routine computes the correct FAR
+call on the fly, preserving all flags and registers.  Thus, we avoid
+exercising the loader bug by doing the relocation at run time.  This
+routine is included with Freyja and will be in future versions of
+MemUtil.  It looks like this:
+
+;	A call to this routine is patched in with makeexm -p.  This
+;	routine fixes up the stack and converts a near call into a far call.
+
+_nearfar proc	near
+
+; the stack now has:
+;		SP	return address, which needs to be bumped
+
+	push	AX	; reserve space for CS
+	push	AX	; reserve space for where we jump to
+	pushf
+	push	AX	; save to make working room
+	push	BX
+	mov	BX,SP
+
+; the stack now has:
+;		SP + 10	return address
+;		SP + 8	placeholder
+;		SP + 6	placeholder
+;		SP + 4	flags
+;		SP + 2	saved AX
+;		SP	saved BX
+
+	mov	AX,[BX + 10]
+	inc	AX		; skip over our data
+	inc	AX
+	mov	[BX + 8],AX	; put in correct place
+	mov	AX,CS
+	mov	[BX + 10],AX	; put in correct place
+
+; the stack now has:
+;		SP + 10	CS
+;		SP + 8	correct return IP
+;		SP + 6	place for us to jump to (not initialized yet)
+;		SP + 4	flags
+;		SP + 2	saved AX
+;		SP	saved BX
+
+	mov	AX,[BX + 8]
+	dec	AX
+	dec	AX
+	push	BX
+	mov	BX,AX
+	mov	AX,CS:[BX]
+	pop	BX
+	mov	[BX + 6],AX
+
+; the stack now has:
+;		SP + 10	CS
+;		SP + 8	correct IP for the far return
+;		SP + 6	place for us to jump to
+;		SP + 4	flags
+;		SP + 2	saved AX
+;		SP	saved BX
+
+	pop	BX
+	pop	AX
+	popf
+	ret		; take off!
+_nearfar endp
+
+
+THE 95'S APPLICATION TABLE
+
+This section describes what I know about the 95's application table.
+I would like to credit Hewlett-Packard company in general, and Everett
+Kaser in particular, for explaining the techniques for retrieving the
+application control blocks in the "what" program supplied as part of
+the development tools.
+
+	IMPORTANT: The information in here is ***NOT*** supported by
+	HP.  Use at your own risk!  Do not call HP to ask for support
+	or further information in this area!
+
+The information is stored in an array of seventeen structures, each 48
+bytes long.  Seventeen structures are used because there are eight
+built-in applications, eight user applications, and one "housekeeping"
+application, which is automatically activated when there aren't any
+others: it displays the top card.
+
+Here are the definitions that I use.  The names are assigned by me.
+Some of the fields I understand in detail, and others I have only the
+vaguest guesses about.
+
+struct acb {
+		/* Stack pointer and segment when the application was
+		deactivated.  Possibly also used to save the current
+		application's stack pointer/segment during a system
+		manager call, but a running application could never
+		detect this. */
+	unsigned sp;
+	unsigned ss;
+
+		/* Points to the application's image vector. 
+		Expanded upon later. */
+	unsigned imagev_off;
+	unsigned imagev_seg;
+
+		/* Application's data segment.  The data segment
+		length is stored somewhere else. */
+	unsigned ds;
+
+		/* Base segment of allocation.  What this means, I
+		don't know. */
+	unsigned mem_seg;
+
+		/* Hot key that activates the application. */
+	unsigned hot_key;
+
+		/* Memory mapping information.  Presumably used by
+		ROM applications. */
+	char membank[6];
+
+		/* Chip selection array.  Presumably used by ROM
+		applications. */
+	char chipsel[6];
+
+		/* Current application state.  Values:
+			0	Closed
+			1	Active
+			2	Suspended
+			4	Exit
+			8	Yield
+			16	Exit Refused */
+	char state;
+
+		/* Is this 123 and other flags. */
+	char flags;
+
+		/* Resource segment? */
+	unsigned rsrc_seg;
+
+		/* Is the application just testing for keys? */
+	char nowait;
+
+		/* filler byte */
+	char filler;
+
+		/* Application name as presented in the low memory
+		screen and by MemUtil.  For the ROM applications,
+		this has one value if you have not activated them
+		since reboot, then it changes when they are activated
+		the first time.  There need not be a terminating NUL. */
+	char name[12];
+
+		/* more filler */
+	char filler2[4];
+	};
+
+You might feel an urge to make changes in the 95 by updating this
+structure directly.  For example, by changing the hot key entry.  Do
+this at your own risk: I've never tried it and have no desire to.
+(Let me know what you find out (:-).)
+
+You find the application control block array in two steps.  First, you
+need to locate the system manager's data segment.  There is an
+undocumented call that returns that value.  The call looks like this:
+
+_GetSysDS proc near
+	push	DS		; save ours
+	int	61H		; get the System Manager data segment
+	mov	AX,DS		; move returned value to AX
+	pop	DS		; restore ours
+	ret
+_GetSysDS endp
+
+Now that you have found the starting place, you look for the table.
+You find the table by doing a simple string search within that segment
+(64 KByte maximum) for the string "JTASK0.EXE ".  Once you find this
+string, you look back 80 bytes (32 bytes to the beginning of the
+structure entry, then 48 bytes because JTASK0 is the second element in
+the array).  This scheme works only probabilistically, but it is
+unlikely that this string will occur elsewhere in the system manager
+and in fact, I have never found it to fail.
+
+As a holdover from debugging and extra safety measure, MemUtil stores
+its search string as "KUBTL1/FYF!!" and subtracts one from each
+character in this string before comparing.  It thus can't trip over
+the search string by mistake.
+
+The image vector appears to point to a place where the system manager
+stores additional information about the application. I have not
+attempted to puzzle out the use of that area, except for one use: you
+can find the full pathname of the application's .EXM file.  The code
+to do this is:
+
+	...
+	struct acb *a;
+	char buf3[128];
+	char fname[30];		/* exactly legal apname file name size + 1 */
+	unsigned amt;
+
+	a = &acbs[curt->cur];
+		...
+			/* compute paragraph of imagevec */
+		amt = a->imagev_seg + (a->imagev_off >> 4);
+			/* get the data: buf3 is the buffer to
+			put it in, the next parameter contain
+			the amount of data to fetch, and amt
+			is the paragraph to fetch from */
+		BlockGet(buf3, sizeof(buf3), amt);
+			/* compute the starting offset within
+			the paragraph */
+		amt = a->imagev_off & 0xf;
+			/* get the filename, which starts 56 bytes
+			into the imagevec; xstrncpy is like
+			strncpy, but it always appends a NUL */
+		xstrncpy(fname, &buf3[amt + 56]);
+		...
+
+
+OBTAINING FREYJA AND MEMUTIL
+
+I offer three packages: Freyja, MemUtil, and HPDATAbase.
+
+Freyja: an Emacs-type text editor that runs on MS/DOS systems in
+general and under the system manager on the 95 in particular.  (Unix
+systems, too, but there are better implementations for that
+environment.)  This editor was introduced at the Corvallis Conference
+in August 1991.  The editor has a zillion functions and features.  It
+is written in C and the distribution includes full source, is at no
+charge, and is under the terms of GNU CopyLeft.
+
+MemUtil: an program that runs under the system manager that shows you
+the current application status and lets you poke around the system
+while the system manager is running.  (It also includes a "mini"
+version called Aplist that only includes the application status part.)
+It is written in C and the distribution includes full source, is at no
+charge, and is under the terms of GNU CopyLeft.
+
+HPDATAbase: is an ASCII text database of all HP products with part
+numbers under 100.  It includes keyboard layouts, function lists,
+memory structure, etc.
+
+You can obtain copies of any of these packages in two ways:
+
+- Over the Internet via anonymous FTP.  The host is mail.unet.umn.edu
+and the directory is import/fin.  Start with the file
+import/fin/README.
+
+- Directly from me. Please send either blank diskettes and SASE _or_
+about US$3.00 per package and I will supply everything.  I can supply
+either 3 1/2" or 5 1/4" MS/DOS diskettes.  Diskette requirements are:
+
+			5 1/4"	3 1/2"
+			360 KB	720 KB
+
+	Freyja		2	1
+	MemUtil		1	1
+	HPDATAbase	2	1
+
+Craig Finseth
+1343 Lafond
+St Paul MN 55104
+USA
++1 612 644 4027
+
+fin@unet.umn.edu
+Craig.Finseth@mr.net

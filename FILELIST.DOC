@@ -1,0 +1,154 @@
+This file briefly describes each of the files included with Freyja2. 
+The files marked with an [s] are included in the "small" version.
+
+Conventions:
+
+	*.asm		8086 assembler source
+	*.c		C source files
+	*.doc		ASCII files describing things
+	*.exe		MS/DOS executables
+	*.exm		HP95LX/HP100LX system-manager compliant executables
+	*.h		include files
+	*.icn		HP100LX icon files: transfer in "binary" mode
+	*.lnk		MS/DOS linker "batch" files
+	*.res		resource source files
+	*.ri		binary resource files (after compilation)
+	*.txt		ASCII text files
+
+------------------------------------------------------------
+
+README		[s]	general overview
+
+anatomy.txt		how to write HP95LX applications
+
+ascii.txt		ASCII chart
+
+c0s.asm			replacement startup code for use with the
+			system-manager compliant version
+
+copying.doc	[s]	copying information
+
+fbuf.c			Freyja buffer code
+fcalc.c			Freyja calculator code
+fcalc.doc	[s]	documentation on the calculator
+fchar.c			Freyja character-oriented commands
+fcmdlist.doc	[s]	command list in ASCII order
+fcmdxref.doc	[s]	command cross reference
+fdate.c			Freyja date and calendar code
+fdisplay.c		Freyja display code
+ffile.c			Freyja file and buffer command code
+
+filelist	[s]	list of all files
+filelist.doc	[s]	this file
+
+fjaguar.c		Freyja Jaguar interface code (HP95LX, non-system mgr)
+fkey.c			Freyja keyboard code
+fmenus.doc	[s]	documentation on menu entries
+fmisc.c			Freyja miscellaneous commands code
+fregion.c		Freyja region commands code
+
+freyja.c		Freyja main program
+freyja.doc	[s]	documentation
+freyja.exe	[s]	MS/DOS executable
+freyja.exm	[s]	system manager executable
+freyja.h		Freyja main header file
+freyja.icn	[s]	Freyja icon for the HP100LX
+freyja.lnk		Freyja MS/DOS version linker file
+freyja.res	[s]	main resource file
+frres.h		[s]	Freyja resource file symbol definitions
+
+fsf.doc		[s]	about the Free Software Foundation
+
+ftable.c		Freyja command table code
+fterm.c			Freyja terminal I/O code
+ftutoria.doc	[s]	Freyja tutorial
+fwhite.c		Freyja whitespace commands code
+fword.c			Freyja word-oriented commands code
+
+indos100.doc	[s]	installing for the HP100LX, MS/DOS
+indos100.ri	[s]
+indos95.doc	[s]	installing for the HP95LX, MS/DOS
+indos95.ri	[s]
+
+inibmpc.doc	[s]	installing for the IBMPC
+inibmpc.ri	[s]	resource file for the IBMPC
+
+insys100.doc	[s]	installing for the HP100LX, system manager
+insys100.ri	[s]
+insys95.doc	[s]	installing for the HP95LX, system manager
+insys95.ri	[s]
+
+inunix.doc	[s]	Unix installation notes
+
+league.doc	[s]	about the League for Programming Freedom
+
+lib.c			general library
+lib.doc
+lib.h
+libasm.asm
+
+libparse.c		parse a file, line-by-line
+libparse.doc
+
+libreade.c		tokenizing reader
+libres.c		resource file loader
+
+makeexm.c		makeexm utility
+makeexm.doc	[s]
+makeexm.exe	[s]
+
+makefile.msd		MS/DOS makefile
+makefile.unx		Unix makefile
+
+memapp.c		MemUtil application task table code
+memchain.c		MemUtil memory block code
+memhelp.c		MemUtil help
+
+memutil.c		MemUtil
+memutil.doc	[s]
+memutil.exm	[s]
+memutil.h
+memutil.icn	[s]	MemUtil icon for the HP100LX
+
+moon.c			phase of the moon program
+moon.doc	[s]
+moon.exe	[s]
+
+resource.doc	[s]	resource file format
+
+rlangdk.res	[s]	Danish language messages and menus
+rlangen.res	[s]	English language messages and menus
+
+rpage000.res	[s]	code page 0 (ASCII) definitions, use for Unix
+rpage437.res	[s]	code page 437 (IBMPC) definitions
+rpage850.res	[s]	code page 850 (HP95LX and HP100LX) definitions
+rpage852.res	[s]	code page 852 (HP95LX and HP100LX) definitions
+rpage865.res	[s]	code page 865 (HP95LX and HP100LX) definitions
+rpagebeg.res	[s]	definitions of first 128 character glyphs
+
+smfreyja.lnk		Freyja system manager version linker file
+smjaguar.c		Freyja system manager version interface code
+
+sysmgr.h		system manager interface definitions
+
+These are programs that perform miscellaneous functions, sometimes
+with the subtelty of Thor's war hammer.
+
+thorabk.c		convert HP95LX appointment book to ASCII files
+thorabk.doc	[s]
+thorabk.exe	[s]
+
+thorpbk.c		convert HP95LX phone book to/from ASCII files
+thorpbk.doc	[s]
+thorpbk.exe	[s]
+
+thorres.c		compile resource files
+thorres.doc	[s]
+thorres.exe	[s]
+
+turboc.cfg		Borland Turbo C setup
+
+warranty.doc	[s]	warranty information
+
+xprintf.c		replacement printf
+xprintf.doc

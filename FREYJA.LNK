@@ -1,0 +1,4 @@
+\lib\c0s+freyja.obj+fbuf.obj+fcalc.obj+fchar.obj+fdate.obj+fdisplay.obj+ffile.obj+fjaguar.obj+fkey.obj+fmisc.obj+fregion.obj+ftable.obj+fterm.obj+fwhite.obj+fword.obj+lib.obj+libres.obj+xprintf.obj+libasm.obj
+freyja
+freyja
+\lib\emu+\lib\maths+\lib\cs

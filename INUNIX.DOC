@@ -1,0 +1,131 @@
+	      Installation Instructions for Unix Systems
+
+Code Letter: U
+
+Features:
+
+The Unix version supports all standard features plus:
+
+- termcap
+- interpret VT100 function keys
+
+
+---------- from freyja.tar file --------------------
+
+1) Be on a Unix host or one with a tar command.
+2) Create a directory to hold the files.
+3) Do:
+
+	cd [[that directory]]
+	tar xvf [[the name of the freyja.tar file on your system]]
+
+4) In lib.h, make sure that the correct system constant is #defined.
+5) Make it:
+
+	mv makefile.unx Makefile
+	make
+
+or:
+
+	ln -s makefile.unx Makefile
+	make
+
+6) Install it, for each file:
+
+	freyja
+	makeexm
+	moon
+	thorabk
+	thorcont
+	thornumb
+	thorpage
+	thorpbk
+	thorres
+	thortext
+
+do:
+
+	cp <file> <your binary directory, /usr/local/bin?>
+
+7) Install the documentation, for each file:
+
+	copying.doc	[help]
+	fcalc.doc	[help]
+	fcmdlist.doc	[help]
+	fcmdxref.doc	[help]
+	fmenus.doc	[help]
+	freyja.doc	[help]
+	fsf.doc		[help]
+	ftutoria.doc	[help]
+	league.doc	[help]
+	makeexm.doc
+	moon.doc
+	thorabk.doc
+	thorcont.doc
+	thornumb.doc
+	thorpage.doc
+	thorpbk.doc
+	thorres.doc
+	thortext.doc
+	warranty.doc	[help]
+
+do:
+
+	# cp <file> <your local documentation directory>
+
+Consult freyja.doc for search path information.  The files marked
+[help] are only required for the help functions; the editor works fine
+for all other purposes without them.  However, if you install them,
+you should install them in your search path.
+
+8) If you want to run a standard resource file, do:
+
+	copy freyja.ri <someplace in your search path>
+
+9) If you want to make any changes in the resource file, then you will
+want to review these files:
+
+	*.res
+	resource.doc
+	thorres.doc
+
+The mechanics of the change are:
+
+	<edit *.res and make the changes that you like>
+	make freyja.ri
+	copy freyja.ri <someplace in your search path>
+
+
+---------- from freyja.tar.z file --------------------
+
+1) Be on a Unix host or one with gunzip and tar commands.
+2) Create a directory to hold the files.
+3) Do:
+
+	cd [[that directory]]
+	gunzip < [[the name of the freyja.tar.z file on your system]] |
+		tar xvf - 
+
+4) Follow the steps in the first installation, starting with step 4.
+
+
+---------- from diskette --------------------
+
+1) Create a directory to hold the files.
+
+2) Copy the freyja files from the diskette(s) to this directory.  How
+you do this varies from system to system.  Don't forget that files
+with names of these forms:
+
+	*.exe
+	*.exm
+	*.icn
+	*.ri
+
+Other files are text files and follow the MS/DOS convention of using
+CR/LF's for newlines.  Thus, newlines must be converted to single LFs
+for Unix use.  This conversion can be made by reading in the file and
+writing it out using ^U ^X ^W (or ^U ^X ^S) using the MS/DOS version
+of Freyja.
+
+3) Follow the steps in the first installation, starting with step 4.

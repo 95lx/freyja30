@@ -1,0 +1,911 @@
+USAGE:
+
+freyja [options] [<file(s)>]
+
+PURPOSE:
+
+This command invokes the Freyja text editor.
+
+Files on the command line are automatically read in as if with ^X ^F. 
+However, all files are relative to the current directory.  (Thus, on
+Unix systems, you can do "freyja x/*" and read in all files in the x
+directory.)
+
+OPTIONS:
+
+Option names always start with a single dash ("-") and must be spelled
+exactly as shown but may be entered in upper, lower, or mixed case.
+No embedded spaces may be used in the option name.  Note that many
+options also have a "short" form.  If an option has a parameter, the
+parameter must be separated from the option name with one or more
+space or tab characters.  Option names or option name/parameter pairs
+may appear anywhere in the command line after the command name.
+
+	-k <type>
+	Specifies the key input method to use.  See freyja.res for a
+	list.
+
+	-r <file>
+	Specifies the name to use for the resource file.  You will
+	almost certainly need to include a drive and/or directory
+	part and the ".ri" suffix.
+
+	-s <mode>
+	Specifies the screen mode to use.  Possible values are 0 to
+	100.  See freyja.res for a list.
+
+	-z <size>
+	Specifies the size of the swap area to allocate, in Kilobytes.
+
+"File(s)" is a list of zero or more file names.  Each one is read in
+with the equivalent of a ^X ^F command.  If none are supplied, the
+initial file value from the resource file is used. If no file is
+specified in there, you are left in the system buffer "%scratch%".
+
+RESTRICTIONS:
+
+See later documentation.
+
+DEFAULTS:
+
+-r freyja.ri
+-k, -s and -z values fetched from resource file
+
+FUNCTION:
+
+	       (Freyja Reduksjon Emacs, Ytre Jevn All)
+		 (Freyja Reduces Emacs Yet Joins All)
+    (Norse goddess of sunshine, death, fertility, and divination)
+
+Freyja is a text editor that implements the Emacs command set.  It is
+not interactively extensible: to make changes, you must edit the
+source code and recompile.
+
+Freyja implements this author's favorite variation on the Emacs command
+set.  As such, it is somewhat idiosyncratic.  However, if you don't
+like something about it, you are welcome to change it.
+
+While Freyja runs on UNIX systems, it was designed with MS/DOS systems
+in mind.  In particular, it was designed to run on RAM-based laptop
+and palmtop computers.
+
+The Freyja documentation (including this file) is rather sketchy.  It
+assumes that you know (1) what Emacs editors are all about (or at
+least what text editors are all about) and (2) you aren't intimiated
+by installing a C program (and figuring things out from source code).
+(Well, MS/DOS and HP95LX/HP100LX users have it easy as executables are
+included.)  Books on emacs are listed in the BOOKS section at the end
+of this file.
+
+The rest of this file and the "ftutoria.doc" file provide a basic
+introduction to the Freyja editor and its commands.  In addition, the
+files "fcmdlist.doc" and "fcmdxref.doc" provide a detailed command
+list and command cross-reference chart and "fmenus.doc" tells you
+about the menus.
+
+
+
+EDITING MODEL
+
+Freyja edits text in units of "buffers," where a buffer is a
+one-dimensional array of bytes (characters).  Typically, a buffer is a
+copy of a file being edited.
+
+All editing operations are performed within (or between) buffers. Each
+buffer has a "point."  The point is the location where all editing
+changes take place.  The point is always between two characters.
+Typically, the left edge of your display's cursor will be at the
+point.
+
+In addition, each buffer has a "mark."  This is a designated location
+that is remembered for you.  You can move the point there (the ^X ^X
+command) or move it to the point (the ^@ or Esc SP commands).  (Also,
+the ^Y, Esc <, and Esc > commands set the mark for you.)  The range of
+characters between the point and the mark is called the "region" (it
+doesn't matter which of the point and the mark is earlier in the
+buffer).  Many commands operate over all text in the region.  For
+example, you can delete ("cut") or copy this text.  You can also
+convert it to uppercase, lowercase, indent it, outdent it, and so
+forth.
+
+Most deletion commands copy the deleted text to the "kill buffer."
+This text can be retrieved with the ^Y command.  (The commands that do
+not copy the text are ^D, ^H, ^? (UNIX), the whitespace-munging
+commands, and the ^W command if given an argument.)  Successive
+deletions accumulate text in the delete buffer. Hence, "Esc D Esc D Esc
+D" has the same effect as ^U 3 Esc D".  Any non-accumulating deletion
+command turns off the accumulation (it can be turned back on with the
+Esc ^W command).  A "+" character appears in the mode line if
+accumulating is on (i.e., the next deletion command will accumulate,
+not replace, the kill buffer contents).
+
+
+
+COMMAND TYPES
+
+There are three types of commands:
+
+- Regular commands are control characters.  They are written as ^#,
+where "#" is some character.
+
+- Control-X commands are typed by typing the ^X regular command, then
+another character.  They are written as "^X #", where "#" can be any
+character including control characters.  The upper/lower case of # is
+ignored.
+
+- Meta commands are typed by typing the Esc regular command (use the
+ESC or Escape key, if available), then another character.  They are
+written as "Esc #" or "^[ #", where "#" can be any character including
+control characters.  The upper/lower case of # is ignored.
+
+
+
+PARAMETERS
+
+- You can give numeric arguments to commands by starting with the
+universal argument (^U) regular command.  There are two forms:
+
+	^U ^U .... <cmd>	does <cmd> 4, 16, 64, 256, ... times
+				depending upon the number of ^Us (each
+				^U is a multiplier by 4)
+	^U <integer> <cmd>	does <cmd> <integer> times
+
+<cmd> can be any command.  Where it makes sense to do so, the argument
+is used as a repeat count.
+
+- Some commands prompt for string arguments.  If there is a default
+value, it will be shown and can be selected by just typing ^M
+(Return).  Otherwise, you can type your response.  Editing commands are:
+
+	^H, ^?, BS	Erase the last character.
+
+	^U		Erase all input.
+
+	^G, Esc		Cancel the command.
+
+	^Y, Ctrl-F4, PASTE
+			Yank the kill buffer into the prompt.  Be sure
+			that the kill buffer text isn't too large, or
+			you will have to listen to the bell for a while.
+
+	^I, Tab, ?, F1	See the file section later on. They do neat
+			things!
+
+- Some commands prompt for single-character arguments.  They can be
+cancelled with ^G or Esc.
+
+
+
+MENUS
+
+Menus provide an alternate way to invoke many commands.  There are two
+types of menus: horizontal and vertical.
+
+Horizontal (used on the HP95LX and Unix versions, and by Lotus 1-2-3
+on the HP100LX) menus display across the top of the screen.  The
+following keys are used while in the menus:
+
+	^M		Select the current item.
+
+	^G, Esc		Cancel the menu.
+
+	letter		Starting with the current item, select the
+			next item that uses that letter as the "hot
+			key."  The hot key letters are underscored
+			in the menu display.
+
+	F1, ?		Show help on the current menu item.  (For the
+			following, keep in mind that menu items are
+			implemented as key macros.)  The second line
+			shows the key macro that is invoked by the
+			menu item.  The first line shows the help
+			information for the first command in the key
+			macro.
+
+	^L		Redisplays the menus, in case the screen
+			is messed up.
+
+	space, ^F, ^N, Right Arrow, Down Arrow
+			Move right ("forward" or "down") one item;
+			wraps from the last to the first item.
+
+	^H, BS, ^? , ^B, ^P, Left Arrow, Up Arrow
+			Move left ("backward" or "up") one item; wraps
+			from the first to the last item.
+
+Some menu items look like:
+
+	text|junk
+
+The "junk" shows the key sequence that is invoked by the menu item.  This
+allows you to become aware of key sequences for commands that you may
+wish to use often.
+
+
+Vertical (used on the HP100LX and IBM PC versions and by DOS 5
+applications) menus start as a horizontal menu across the top of the
+screen.  When a sub-menu is selected, it "drops down."  The following
+keys are used while in the menus:
+
+	^M		Select the current item.
+
+	^G, Esc		Cancel the menu.
+
+	letter		Starting with the current item, select the
+			next item that uses that letter as the "hot
+			key."  The hot key letters are underscored
+			in the menu display.
+
+	F1, ?		Show help on the current menu item.  (For the
+			following, keep in mind that menu items are
+			implemented as key macros.)  The second line
+			shows the key macro that is invoked by the
+			menu item.  The first line shows the help
+			information for the first command in the key
+			macro.
+
+	^L		Redisplays the menus, in case the screen
+			is messed up.
+
+	^F, Right Arrow	Move right ("forward") one item; wraps from
+			the last to the first item.  If in a sub-menu,
+			moves to the next sub-menu.
+
+	space, ^N, Down Arrow
+			Move down item; wraps from the last to the
+			first item.  Same as ^F / Right Arrow in the
+			main menu.
+
+	^H, BS, ^?, ^B, Left Arrow
+			Move left ("backward") one item; wraps from
+			the first to the last item.  If in a sub-menu,
+			moves to the next sub-menu.
+
+	^P, Up Arrow	Move up one item; wraps from the first to the
+			last item.  Same as ^B / Left Arrow in the
+			main menu.
+
+For both menu types, when the selected item is invoked (with a ^M or
+by typing its initial letter), the associated command string is then
+interpreted in a fashion similar to a keyboard macro.  (However any
+argument is ignored.)  Hence, all menu functions are also available
+directly from the keyboard (see also the ^X 9 function).
+
+
+
+HELP
+
+The ^X H command gets you into the help subsystem, as does a menu
+entry and the F1 key.  This system allows you to get help in many
+areas.  It include the "apropos" facility which is a tradition among
+Emacs-type text editors.
+
+This "apropos" command asks you for a word and lists those commands
+that include that word in their descriptions.  For example, if you
+entered "lines", it would list the commands that operate on lines.
+
+You should keep the following synonyms in mind when using apropos:
+
+	following | forward | next
+	backward | preceding  | previous
+	delete  | erase  | kill
+	mark | region
+
+
+
+DISPLAY
+
+Most characters are displayed as themselves.  Three characters are
+displayed specially:
+
+- Tab characters (^I, 9 decimal) move the cursor to the next tab stop.
+Tab stops are set every N characters, where N can be different for
+each buffer.
+
+- "Hard" newlines (^J, 10 decimal) move the cursor to the start of the
+next line.
+
+- "Soft" newlines (^_, 31 decimal) also move the cursor to the start
+of the next line.  The difference between hard and soft newlines is
+explained later.
+
+The VISGRAY value in the resource file and the ^X ` command control
+whether these characters and spaces are "visible."  Try it and see.
+You can also control which characters are used as the "visible" ones
+by resource file settings.
+
+Other control and meta characters (those with values < 31 decimal and
+>= 127 decimal) are either displayed in "caret" notation or as
+themselves (controlled with the USECARET value in the resource file).
+
+Freyja supports two separate windows.  You create two windows by
+giving the ^X 2 or ^X 3 command (they only differ in which window the    
+cursor is left in). While these windows initially display the same
+text, you can move each independantly of the other.  You can switch
+windows by giving the ^X O command.  You can grow the current window
+by giving the ^X ^ command. (No window can be less than 3 lines
+high.)  You can return to one window by giving the ^X 1 command.
+
+Each window can be separately scrolled vertically or horizontally.
+(Long lines do not wrap.)  Use the ^X < and ^X > commands to scroll
+the window.  Note that the window will always be moved to show the
+point.
+
+
+
+THE STATUS LINE
+
+The last line on the screen is called the status line.  It shows the
+name and version number of the editor, the name of the file currently 
+being edited, the percentage through the buffer that the point is, and
+these other indicators:
+
+- A "*" is displayed if the buffer has been modified since it was
+last read from or written to the associated file.
+
+- A "+" is displayed if the next deletion command will add to instead
+of replacing the contents of the kill buffer.
+
+- A "^" is displayed if the PgUp/Dn and Up/Down Arrow keys are toggled.
+
+- A ">#" is displayed to show the tab spacing in characters.
+
+- A "<#" is displayed to show the right margin setting.
+
+- A "###" is displayed to show the current fill mode: none, fill, or
+wrap.  See the later word wrap section.
+
+
+
+FILE AND BUFFER COMMANDS
+
+Freyja allows you to edit or view up to 11 files at once.  Freyja
+commands work on a copy of the file, not the file itself.  Each of
+these copies is called a buffer.  There are a number of commands that
+transfer the text between the buffer and the file.
+
+The ^X ^F (find file) command asks for the name of a file.  If the
+file is already present in a buffer, it switches to that buffer.  If
+not, it creates a new buffer and reads the file in.  You can create a
+new file by doing a ^X ^F and giving the name of the new (presumably
+non-existant) file.
+
+The ^X ^R (read file) command asks for the name of a file and reads
+it on top of the file in the current buffer.  It is most often used
+for refreshing a modified buffer from the file itself.
+
+The ^X ^S (save file) command save the contents of the buffer in the
+file.
+
+The ^X ^W (write file) command asks for the name of a file and saves
+the buffer to that file.
+
+You can obtain a listing of the files in a directory with the ^X D
+command.
+
+All of the file commands (find - ^X ^F, read - ^X ^R, insert - ^X ^I,
+write - ^X ^W, save region - ^7, delete - ^X ^K, and dired - ^X ^D, ^X
+D) "inherit" the directory of the current buffer.  So:
+
+- If the new name that you type in starts with a directory part, the
+new name is used exactly.  Such new names are of these forms:
+
+	/xxx
+	./xxx
+	../xxx
+	\xxx		MS/DOS
+	.\xxx		MS/DOS
+	..\xxx		MS/DOS
+	#:xxx		MS/DOS
+
+Otherwise, the directory part of the current file name is extracted
+and prepended to the new name.  Why bother with this?  Say, for
+example, that you want to work in a new directory:
+
+	^X ^F /newdir/file1 ^M
+
+Then, on later files in the same directory:
+
+	^X ^F file2 ^M
+
+This is actually quite handy and much less confusing to use than
+explain.
+
+File command prompts also include the current directory enclosed in
+"[]"s.
+
+When the program prompts for a file name, two special file name
+completion characters are available:
+
+	?, F1	Shows all files that match the file name as typed
+		so far.
+
+	^I, Tab	Shows all files that match the file name as typed
+		so far and completes as much of the name as possible
+		for you.  Really saves typing.
+
+Note that while you can see these other names, you can't switch there
+to page around the buffer without cancelling the file prompt.  All is
+not lost, however, as you can do:
+
+	Esc		cancel prompt
+	^X D		switch to DIRED buffer
+	<move to desired name, including those off the screen>
+	^K		delete the name
+	<switch back>
+	<reissue your command>
+	^Y		yanks the file name
+	^M		all done
+
+or, if you are doing a Find or Delete File, life is even easier:
+
+	Esc		cancel prompt
+	^X D		switch to DIRED buffer
+	<move to desired name, including those off the screen>
+	<reissue your command>
+
+If you are running the HP95LX system manger version, the USEGETTER
+value in the resouce file controls whether the native file getter or
+Freyja file completion are used.
+
+You can also move among the buffers.  These buffers are arranged in a
+ring, and you can give the commands:
+
+	^X B	move to the next buffer in the ring
+	^X V	move to the previous buffer in the ring
+	^X K	delete the current buffer and move to the previous
+		buffer in the ring
+	^X D	move to the DIRED buffer if it exists, otherwise the
+		same as ^X ^D
+
+
+SEARCHING
+
+When searching, you are prompted for the entire string and that string
+is then searched for as a unit.  If the search is not successful, the
+point does not move.  A lower-case character in the search string will
+match either a lower- or upper-case character in the buffer.  An
+upper-case character in the search string will only match an
+upper-case charecter in the buffer.  Thus, a search string of "the"
+matches "the" or "The", but a search string of "ROM" does not match
+"from".
+
+
+
+REPLACE AND QUERY REPLACE
+
+The Esc R (replace) and Esc ^R (query replace) commands let you
+substitute one string for another.  The commands ask for an old
+string and a new one.  They search for each occurrance of the old
+string in the same manner as ^S starting with the point and
+proceeding to the end of the buffer.  The replace command simply
+replaces the old string with the new.  The query replace command asks
+you at each occurrance.  You can type:
+
+	Y, y, space	do the replace and go to the next one
+
+	N, n, ^H, ^?	do NOT replace and go to the next one
+
+	,		replace, show the replacement, and ask
+			for Y/N confirmation
+
+	.		do the replace and exit immediately
+
+	!		do the rest of the replacements without
+			asking
+
+	?, F1		show help
+
+	^G, Esc		exit
+
+
+
+WORD WRAP (SOFT vs. HARD NEWLINES)
+
+Frey supports three types of filling / wrapping.
+
+The first type is "none:" no wrapping is done automatically.
+Paragraphs can be refilled with the Esc Q command.
+
+The second type is "fill:" filling is done as input is typed.
+However, only the current line is filled.  Paragraphs can be refilled
+with the Esc Q command.  Hard newlines are used.  Thus, when the file
+is written to disk, an actual newline (^J or ^M/^J) will be in the
+file.  Paragraphs are in general separated by two consecutive
+newlines.  Freyja's paragraph commands will in addition treat newline
+/ space, newline / Tab, newline / ".", and newline / "@" as paragraph
+breaks.
+
+The third type is "wrap:" the current paragraph is refilled as input
+is typed.  Paragraphs can be refilled with the Esc Q command.  Lines
+within paragraphs are separated by soft newlines (^_, 31 decimal)
+while in Freyja.  However, these are converted to or from spaces as
+the file is read or written. A hard newline ends a paragraph.
+
+Regions can be converted between fill and wrap newline styles with the
+^X { and ^X } commands.
+
+You can control the word wrap mode on a buffer with the ^X / command.
+
+If the WRAPCHECK value in the resource file is "yes," each file will
+be checked for a "ruler line" as it is being read in.  If the ruler
+line is present, it is used to set the per-buffer settings (margins
+and tab spacing, but NOT wrap mode).  Note that the margin settings
+are changed AFTER the file is filled as read in.  Sorry.
+
+The ruler line is compatible with that used by Borland's Sprint(tm)
+package and has the following format:
+
+	^KR #,T #,L #
+
+where:
+
+	^K is the vertical tab control character, 11 decimal
+	R # sets the right margin to column #
+	T # sets the tab spacing to # columns
+	L # sets the left margin to column #
+
+The ruler line must be on a line by itself (no leading or trailing
+text) and must be the first line in the file that is neither blank nor
+starts with a "." or "@" character.  A single, leading, blank line, if
+present, is skipped.  Thus, if your file starts with, say:
+
+	<blank>
+	@PageFooting()
+	<ruler>
+
+The ruler line will be found.
+
+
+
+SYSTEM BUFFERS
+
+A buffer whose name starts with a percent sign ("%") is a "system
+buffer."  These buffers are created, overwritten, and otherwise
+manipulated by Freyja without notice.  They are otherwise ordinary
+buffers.
+
+The buffer commands (^X ^B, ^X B, ^X K, ^X V) ordinarily skip these
+buffers.  You can cause the commands to not skip these buffers by
+supplying an argument to the command.  This skipping is also
+controlled by the SKIPSYS value in the resource file.
+
+When you exit Freyja, the modification flags of system buffers are NOT
+CHECKED: if you have made significant changes to any of these buffers,
+the changes will be lost unless you save them before giving an exit
+command.
+
+Partial list of system buffers:
+
+	%bufflist%	the list of buffers is placed here (^X ^B)
+
+	%cal%		calendar output
+
+	%dired%		the output of dired (^X ^D)
+
+	%help%		help command responses (^X H)
+
+	%include%	used for the include file commands (you won't
+			ever see this one)
+
+	%kill%		the kill buffer: DON'T DELETE THIS!!!
+			(actually, you can't)
+
+	%scratch%	this buffer is created whenver you don't have
+			any non-system buffers
+
+
+
+FILE LOADING
+
+When Freyja loads a pre-defined file (e.g., "freyja.ini" or any of the
+"f*.doc" files), it looks in these places in this order:
+
+	if present, the directory indicated by the "FREYJADIR"
+		environment variable
+	if present, the directory indicated by the "HOME"
+		environment variable
+	the search path ("PATH")
+	the current directory
+
+If running on the HP95LX or the HP100LX under the system manager, the
+directory "C:\_DAT" is also searched.
+
+
+
+INITIALIZATION FILE
+
+Freyja's operation can be tailored in various ways.  These parameters
+are set in the "freyja.res" file.  The specific parameters are
+documented in there.  For the most part, the only way to change a
+parameter is to change the file, then recompile the resource file and
+exit and restart Freyja.
+
+	freyja freyja.res
+	<make changes, exit>
+	thorres -c ### -l && -f % freyja.res -h frres.h
+	copy freyja.ri <someplace in your search path>
+
+Notes:
+
+- replace the ### with:
+
+	000 if you are using ASCII (Unix systems)
+	437 if you are using code page 437 (US IBM PCs)
+	850 if you are using code page 850 (HP95LX, HP100LX)
+	865 if you are using code page 865 (HP95LX, HP100LX)
+
+- replace the && with:
+
+	en if you want the English language message
+	dk if you want the Danish language messages
+
+- replace the % with:
+
+	i	generic IBMPC and compatible
+	c	HP100LX "cougar:" system manager
+	d	HP100LX "DOS:" MS/DOS, but don't assume sys mgr loaded
+	j	HP95LX "jaguar:" MS/DOS under system manager
+	s	HP95LX "system manager:" system manager
+	u	applies to Unix systems
+
+You can also change the rpage*.res and rlang*.res files, but you are
+less likely to want to...
+
+			   ***** NOTE *****
+
+Please be careful when making changes to the resource file.  This
+file, in effect, "opens up" the internals of Freyja and it _is_
+possible to create a file that will cause Freyja to crash.  If in
+doubt, fetch a clean copy of the distribution version and start over
+with your changes.
+
+In general, you can change the _values_ for any entry.  Changing an
+entry's _type_ or inserting or deleting entries (except for adding
+new entries to the end of a table) is what will cause big problems.
+
+The most likely changes you will make are:
+
+- Menu types between horizontal and vertical.
+
+- For HP95LX people, you may want to get rid of the "floating" menus. 
+Replace the 0x10 with 0x00 in the menu type.
+
+- For HP95LX people, you may want to get rid of the menu titles. 
+Replace the " <name> " with "".  Be sure to LEAVE the titles in for
+vertical sub-menus.
+
+- Add new menu entries.  Go ahead.
+
+- Add new menus.  Put them at the end of freyja.res just before the
+summary table.  You will have to enter the numbers by hand in the main
+menu (which you can add entries to).
+
+- Change key sequences or labels.  Go ahead.
+
+- Add new printers.  Put them at the end of freyja.res just before the
+summary table.  You will have to enter the numbers by hand in the
+printer selection menu.
+
+
+
+PRINTING
+
+You can print either an entire buffer (^X P) or the region (^X ^P). 
+The program performs only basic pagination and left margin support. 
+No headers or footers are generated.  The program does expand tabs and
+handle form feeds.  (More to come in version 3.)
+
+Print parameters are set in the PRINTER table in the resource file.
+
+On MS/DOS systems, output is to the PRN device.  On Unix systems,
+output is to the %printer% file.
+
+The program does _not_ perform flow control in any fashion, nor does
+it initialize the port in any way.  Printing on the HP95LX can
+therefore be somewhat tricky: you should use your favorite method to
+configure and power on the seriale port.
+
+You can omit all formatting and just send the "raw" characters in the
+buffer by specifying an argument to the print commands.  (You must use
+the ^X P and ^X ^P commands as arguments are not passed into menu
+items.)
+
+
+
+WHATEVER HAPPENED TO "THORCONT" and "THORTEXT"?
+
+These commands wound up duplicating Freyja functinality.  As disk
+space was getting tight...  In any event, reviewing their functions
+will help understand Freyja.
+
+Thorcont options:
+
+-filter: The various filter types can be done with replace string (Esc
+R).  The only difficulty would be to remove the NUL (0 decimal) bytes.
+-lower: This is ^X ^L.
+-nometa: This is ^X 7.
+-tabify: This is ^X T.
+-untabify: This is ^X U.
+-upper: This is ^X ^U.
+
+All of these commands assume that the region is set to the whole
+buffer.  Do this with "^U ^[ H" or "Esc > Esc <".
+
+Thortext options:
+
+Most end-of-line conversions can be done with replace string (Esc R),
+coupled with an argument when reading and writing the files to
+supress other conversions.
+
+You can convert from a file of fixed-length records to newlines with
+the keyboard macro:
+
+	^U 80 ^F ^M
+
+(All examples assume 80 column records.)  This inserts newlines every
+80 characters.  If you want to get rid of trailing whitespace, do:
+
+	^X \
+
+after specifying the whole buffer as the region (see above). 
+Converting the other way is a little trickier, but try this keyboard
+macro (assumes that you start at the beginning of a line):
+
+	^E ^U 81 Space ^A ^U 80 ^F ^K ^K
+
+
+
+FEATURES FOR INTERNATIONAL USERS
+
+While Freyja and its documentation are written in English, it tries to
+minize any language dependencies.  The following features minimize any
+language dependencies:
+
+- The core editor is 8-bit clean.  You can thus insert, delete, and
+manipulate any 8-bit value.  The only limitation is that you can not
+search for or replace strings that _contain_ NUL (0 decimal)
+characters.
+
+- The definitions of which characters comprise tokens, numbers,
+whitespace, and sentence ends have been extracted and placed in the
+resource file, where they can be changed to accomodate different needs.
+
+- The information required to convert between upper and lower case
+characters is also in the resource file.
+
+- Almost all messages, prompts, and other strings are also contained
+in the resource file.  The only exception are those messages that may
+be displayed before the resource file has been loaded or
+language-independant strings.
+
+- The menus and command set have also been placed in the resource file.
+
+(For the all of above, the default resource file definitions already
+take into account the difference between Unix, IBM PC, and HP*LX
+environments.)
+
+- All date and time formatting is done in accordance with ISO standard
+8601.
+
+- Keystrokes with values in the range 128 to 256 are handled
+separately from function keys.  These keystrokes can be considered as
+commands or inserted as text.
+
+- The program can send (almost) all characters to the display
+unmodified.  It does interpret Tab (9 decimal), Line Feed (10 decimal,
+as newline), and ^_ (31 decimal, as soft newline).
+
+- You can disable all conversion and interpretion of file I/O by
+supplying an argument to the command.  For example, ^U ^X ^F will find
+and read the file with no conversions.  On the system manager
+conversions, you can similarly suppress all conversions when copying,
+cutting, or pasting to or from the clipboard.  Note that when
+supplying an argument, you must specify the command directly: you
+can't go through the menus.
+
+The distribution includes support for the Danish (dansk) language.
+This is in the file rlangdk.res.  You can this version by specifying
+-l dk whereever the documentation refers to -l en in the thorres
+command line. You will have to use thorres to build an appropriate new
+freyja.ri file.
+
+
+
+ALTERNATE KEYBOARD (MSDOS)
+
+Freyja can be used with external keyboards in two different ways.
+
+First, you can set Freyja to use a VT100 screen, set the keyboard to
+Console, and then use the MS/DOS CTTY command to change where your
+input is coming from.  This allows you to use Freyja from an external
+terminal (or computer running terminal emulator software).  The
+.RES file would look like this:
+
+	KEYINP		"V"
+	SCRNTYPE	27
+
+Second, you can set Freyja to use the computer's screen but fetch
+keyboard input from the serial port.  This would be useful if you have
+an external keyboard.  The .RES file would look like this:
+
+	KEYINP		"S"
+	SCRNTYPE	--unchanged--
+
+In both cases you set the port to use, its speed, and its character
+format with the MS/DOS MODE command.  (I find that the HP95LX powers
+up in 9600 bps, 8 bits, no parity.)
+
+
+
+BOOKS ON EMACS
+
+Title:		Learning Gnu Emacs
+Author(s):	Debra Cameron and Bill Rosenblatt
+Publisher:	O'Reilley and Associates, Inc.
+Size:		442pp, 13 chapters, 8 appendices
+ISBN:		0-937175-84-6
+Price:		$27.95
+
+Title:		The Craft of Text Editing: Emacs for the Modern World
+Author(s):	Craig A. Finseth
+Publisher:	Springer-Verlag
+Size:		220pp, 10 chapters, 5 appendices
+ISBN:		0-387-97616-7, 3-540-97616-7
+Price:		$39.95
+
+Title:		GNU Emacs Reference
+Author(s):	Dennis Gentry
+Publisher:	Specialized Systems Consultants, Inc.
+		P.O. Box 55549
+		Seattle WA 98155
+		USA
+		+1 206 527 3385
+		+1 206 527 2806 fax
+		151208415 telex
+		sales@ssc.com
+Size:		18pp, 8 1/2" x 3 1/2"
+ISBN:		0-916151-59-X
+Price:		$4.50
+
+Title:		The GNU Emacs Lisp Reference Manual, GNU Emacs Version
+		19 for Unix Users, Edition 2.01, June 1993
+Author(s):	Bil Lewis, Dan LaLiberte, and the GNU Manual Group
+Pubisher:	Free Software Foundation
+Size:		748pp + 18pp index
+ISBN:		1-882114-20-5
+Price:		free (see GNU Emacs sites) or for fee from FSF
+
+Title: 		Unix Desktop Guide to Emacs
+Author(s):	Ralph Roberts and Mark Boyd
+Consultants:	Stephen G. Kochan and Patrick H. Wood
+Publisher:	Hayden Books (SAMS)
+Size:		?
+ISBN:		?
+Price:		$27.95 US, $34.95 CAN
+
+Title:		GNU Emacs:  UNIX Text Editing and Processing
+Author(s):	Michael Schoonover, John Bowie, and Bill Arnold
+Pubisher:	Addison-Wesley / HP Press
+Size:		640pp, 14 chapters, 4 appendices
+ISBN:		0-201-56345-2
+Price:		?
+
+Title:		GNU Emacs Manual, Seventh Edition, Version 19, June 1993
+Author(s):	Richard Stallman
+Pubisher:	Free Software Foundation
+Size:		392pp +14pp index
+ISBN:		1-882114-02-7
+Price:		free (see GNU Emacs sites) or for fee from FSF
+
+AUTHOR:
+
+Copyright 1992,3 by Craig A. Finseth
+
+ABOUT THE ICON:
+
+The icon shows a (reasonable, well, sort of) rendition of a woman,
+presumably the goddess Freyja.  (Hey, I never said that I was a good
+artist.)  The symbol to the lower left is the rune Berkana, symbol for
+Freyja.  Those to the lower right are the runes Fehu, Isa, and Nauthiz
+and of course are the transliteration of "fin", my usual monikor.

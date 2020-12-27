@@ -1,0 +1,111 @@
+What Is the Free Software Foundation?
+*************************************
+
+The Free Software Foundation is dedicated to eliminating
+restrictions on copying, redistribution, understanding, and
+modification of computer programs.  We do this by promoting the
+development and use of free software in all areas of computer use.
+Specifically, we are putting together a complete integrated
+software system named "GNU" (GNU's Not Unix) that will be upwardly
+compatible with Unix.  Some large parts of this system are already
+working, and we are distributing them now.
+
+The word "free" in our name refers to two specific freedoms: first,
+the freedom to copy a program and give it away to your friends and
+co-workers; second, the freedom to change a program as you wish, by
+having full access to source code.  Furthermore, you can study the
+source and learn how such programs are written.  You may then be
+able to port it, improve it, and share your changes with others.
+
+Other organizations distribute whatever free software happens to be
+available.  By contrast, FSF concentrates on development of new
+free software, working towards a GNU system complete enough to
+eliminate the need to purchase a proprietary system.
+
+Besides developing GNU, the Foundation has secondary functions:
+producing tapes and printed manuals of GNU software, carrying out
+distribution, and accepting gifts to support GNU development.  We
+are tax exempt; you can deduct donations to us on your tax returns.
+Our development effort is funded partly from donations and partly
+>from distribution fees.  Note that the distribution fees purchase
+just the service of distribution: you never have to pay anyone
+license fees to use GNU software, and you always have the freedom
+to make your copy from a friend's computer at no charge (provided
+your friend is willing).
+
+The Foundation also maintains a Service Directory: a list of people
+who offer service for pay to users of GNU programs and systems.
+The Service Directory is located in file `etc/SERVICE' in the GNU
+Emacs distribution.  Service can mean answering questions for new
+users, customizing programs, porting to new systems, or anything
+else.  Contact us if you want to be listed or wish a copy.
+
+After we create our programs, we continually update and improve
+them.  We release between 2 and 20 updates a year for each program.
+Doing this while developing new programs takes a lot of work, so
+any donations of pertinent source code and documentation, machines,
+labor, or money are always appreciated.
+
+The board of the Foundation is: Richard Stallman, President; Robert
+J.  Chassell, Treasurer; Gerald J. Sussman, Harold Abelson and
+Leonard H.  Tower Jr., Directors.
+
+
+
+What Is Copyleft?
+*****************
+
+In the previous section entitled "What Is the Free Software
+Foundation?" we state that "you never have to pay anyone license
+fees to use GNU software, and you always have the freedom to make
+your copy from a friend's computer at no charge."  What exactly do
+we mean by this, and how do we make sure that it stays true?
+
+The simplest way to make a program free is to put it in the public
+domain.  Then people who get it from sharers can share it with
+others.  But this also allows bad citizens to do what they like to
+do: sell binary-only versions under typical
+don't-share-with-your-neighbor licenses.  They would thus enjoy the
+benefits of the freeness of the original program while withholding
+these benefits from the users.  It could easily come about that
+most users get the program this way, and our goal of making the
+program free for *all* users would have been undermined.
+
+To prevent this from happening, we don't normally place GNU
+programs in the public domain.  Instead, we protect them by what we
+call "copylefts".  A copyleft is a legal instrument that makes
+everybody free to copy a program as long as the person getting the
+copy gets with it the freedom to distribute further copies, and the
+freedom to modify their copy (which means that they must get access
+to the source code).  Typical software companies use copyrights to
+take away these freedoms; now software sharers use copylefts to
+preserve these freedoms.
+
+The copyleft used by the GNU Project is made from a combination of
+a copyright notice and the "GNU General Public License".  The
+copyright notice is the usual kind.  The General Public License is
+a copying license which basically says that you have the freedoms
+we want you to have and that you can't take these freedoms away
+from anyone else.  (The actual document consists of several pages
+of rather complicated legalbol that our lawyer said we needed.)
+The complete license is included in all GNU source code
+distributions and many manuals.  We will send you a copy on
+request.
+
+We encourage others to copyleft their programs using the General
+Public License; basically programs only need to include a few
+sentences stating that the license applies to them.  Specifics on
+using the License accompany it, so refer there for details.
+
+
+     *"As we enjoy great advantages from the inventions of others,
+     we should be glad of an opportunity to serve others by any
+     invention of ours."*
+
+     			-Benjamin Franklin
+
+	Free Software Foundation
+	675 Massachusetts Ave
+	Cambridge MA  02139
+	USA
+	+1 617 876 3296

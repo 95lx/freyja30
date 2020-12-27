@@ -1,0 +1,171 @@
+# Unix Makefile for Freyja2
+
+PROGS = freyja makeexm moon thorabk thorpbk thorres
+
+all:	$(PROGS)
+
+LIB = lib.o libparse.o libreade.o libres.o xprintf.o
+H = lib.h
+
+FH = freyja.h frres.h $(H)
+FCORE = fbuf.o fcalc.o fchar.o fdate.o fdisplay.o ffile.o fkey.o fmisc.o fregion.o ftable.o fterm.o fwhite.o fword.o
+FXLINK = -lm -ggdb2
+
+CURSES = -lcurses -ltermcap
+
+CC = gcc
+
+CFLAGS = -O -ggdb2
+
+# --------------------------------------------------
+
+freyja.ri: thorres freyja.res rpage000.res rlangen.res
+	./thorres -c 000 -l en -f u freyja.res -h frres.h
+
+# --------------------------------------------------
+
+newri: thorres freyja.res rpage000.res rlangen.res
+	./thorres -c 000 -l en -f u freyja.res -h frres.h -new
+
+# --------------------------------------------------
+# see lots out output: for testing thorres
+
+newriv: thorres freyja.res rpage000.res rlangen.res
+	./thorres -c 000 -l en -f u freyja.res -h frres.h -new -v -gc -gl
+
+# --------------------------------------------------
+
+freyja:	freyja.ri freyja.o $(FCORE) $(LIB)
+	$(CC) freyja.o $(FCORE) $(LIB) $(CURSES) $(FXLINK) -o freyja
+
+freyja.o:	$(FH)
+	$(CC) -c $(CFLAGS) -DMAIN freyja.c
+
+$(FCORE):	$(FH)
+
+# --------------------------------------------------
+
+makeexm:	makeexm.o $(LIB)
+	$(CC) makeexm.o $(LIB) -lm -o makeexm
+
+makeexm.o:	$(H)
+
+# --------------------------------------------------
+
+moon:	moon.o $(LIB)
+	$(CC) moon.o $(LIB) -lm -o moon
+
+moon.o:	$(H)
+
+# --------------------------------------------------
+
+thorabk:	thorabk.o $(LIB)
+	$(CC) thorabk.o $(LIB) -o thorabk
+
+thorabk.o:	$(H)
+
+# --------------------------------------------------
+
+thorpbk:	thorpbk.o $(LIB)
+	$(CC) thorpbk.o $(LIB) -o thorpbk
+
+thorpbk.o:	$(H)
+
+# --------------------------------------------------
+
+thorres:	thorres.o $(LIB)
+	$(CC) thorres.o $(LIB) -o thorres
+
+thorres.o:	$(H)
+
+# --------------------------------------------------
+
+$(LIB): $(H)
+
+# --------------------------------------------------
+
+disk:
+	mcopy -t `cat filelist` a:
+	mcopy -n *.exe *.exm *.icn *.ri a:
+
+fromdisk:
+	mcopy -t a:\* .
+	mv readme README
+	mcopy -n a:\*.exe .
+	mcopy -n a:\*.exm .
+	mcopy -n a:\*.icn .
+	mcopy -n a:\*.ri .
+
+cleanup:
+	rm -f *.o
+
+cleanall:
+	rm -f *.o $(PROGS) *.ri
+
+distrib:
+	tar cvf freyja23.tar `cat filelist`
+	gzip -v <freyja23.tar >freyja23.tar.gz
+
+# --------------------------------------------------
+
+small:
+	mkdir small
+	cp \
+		README \
+		copying.doc \
+		fcalc.doc \
+		fcmdlist.doc \
+		fcmdxref.doc \
+		filelist \
+		filelist.doc \
+		fmenus.doc \
+		freyja.doc \
+		freyja.exe \
+		freyja.exm \
+		freyja.icn \
+		freyja.res \
+		frres.h \
+		fsf.doc \
+		ftutoria.doc \
+		indos100.doc \
+		indos100.ri \
+		indos95.doc \
+		indos95.ri \
+		inibmpc.doc \
+		inibmpc.ri \
+		insys100.doc \
+		insys100.ri \
+		insys95.doc \
+		insys95.ri \
+		inunix.doc \
+		league.doc \
+		makeexm.doc \
+		makeexm.exe \
+		memutil.doc \
+		memutil.exm \
+		memutil.icn \
+		moon.doc \
+		moon.exe \
+		resource.doc \
+		rlangdk.res \
+		rlangen.res \
+		rpage000.res \
+		rpage437.res \
+		rpage850.res \
+		rpage852.res \
+		rpage865.res \
+		rpagebeg.res \
+		thorabk.doc \
+		thorabk.exe \
+		thorpbk.doc \
+		thorpbk.exe \
+		thorres.doc \
+		thorres.exe \
+		warranty.doc \
+			small
+	cd small
+	tar cvf ../freyj23s.tar .
+	cd ..
+	rm -R small
+	gzip -v <freyj23s.tar >freyj23s.tar.gz
+

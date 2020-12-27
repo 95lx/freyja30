@@ -1,0 +1,135 @@
+	   Installation Instructions for HP95LX ("Jaguar")
+			    MS/DOS Version
+
+Code Letter: J
+
+Features:
+
+The Jaguar version can do anything that the IBM PC version can do.  In
+addition:
+
+	- It supports the tiny font technoloyg.
+	- It uses the HP95LX character set.
+	- The screen handling is set for the HP95's modes
+	- The MENU key works.
+	- The cursor is set to a block cursor.
+	- Many resource file settings are adjusted for the 95LX.
+
+Note that the program can run from under the FILER or without the
+system manager at all (a "bare" 95LX).
+
+
+------------------------------------------------------------
+Tiny Fonts:
+
+Freyja supports Dave Goodman's Tiny Font technology.  The ^X + command
+changes the font among these choices:
+
+	arg.	display mode	rows x columns		character size
+
+	24	normal text	16 x 40
+	25	graphics	21 x 60			6 x 4
+	26	graphics	25 x 80			5 x 3
+
+With no argument, the command cycles to the next one.  With an
+argument (under "arg."), the command selects that font.  All graphics
+fonts use the same 6 x 4 character bitmap: the difference is in how
+may pixels and scan lines are shown.
+
+The font is defined in the .res file.
+
+The program automatically switches to font 0 when changing
+applications and invoking the file getter.  Thus, while the font
+selections are available on menus, you probably will wind up using the
+^X + command.
+
+Yes, all the font manipulation is written in C.
+
+If you want to bring Freyja up in font 25 or 26, do _not_ set the
+SCRNTYPE paramter.  It doesn't work.  Instead, use INIT macro with
+one of these sequences:
+
+	^U25^X+y
+	^U26^X+y
+
+
+------------------------------------------------------------
+Printing:
+
+Freyja prints to the PRN device (as configured into the .res file: see
+the PRINTER* tables).  The program does _not_ perform flow control in
+any fashion, nor does it initialize the port in any way.  That said, I
+believe that MS/DOS _does_ do XON/XOFF flow control with the PRN
+device.
+
+Printing on the HP95LX can therefore be somewhat tricky: you should
+use your favorite method to configure and power on the serial port. 
+
+
+------------------------------------------------------------
+Installation:
+
+1) Obtain an IBM PC version (see inibmpc.doc).  Note that all *.EXE
+files are included with the distribution, so that you don't have to
+compile anything if you just want to run the off-the-shelf versions.
+
+2) Copy the freyja.exe file to somewhere useful in the HP95LX.  You
+can copy all .exe files if you like, but the others were _not_
+compiled with an eye on keeping them small.  You may also choose to
+not copy all of the documentation.
+
+3) If you want to run a standard resource file, do:
+
+	copy indos95.ri <someplace in your search path on the HP95LX>\freyja.ri
+
+(I put this file in the C:\_DAT directory.)
+
+4) If you want to make any changes in the resource file, then you will
+want to review these files:
+
+	*.res
+	resource.doc
+	thorres.doc
+
+The mechanics of the change are:
+
+	<edit *.res and make the changes>
+	thorres -c 850 -l en -f j freyja.res -h frres.h
+	copy freyja.ri <someplace in your search path>
+
+
+Notes:
+
+	- replace the "en" with "dk" if you are using Danish messages
+	- replace the "850" with "852" if you are using code page 852
+	- replace the "850" with "865" if you are using code page 865
+
+5) The minimum system RAM required is 282K.  This number assumes a 40K
+swap area, and no other applications open or other uses of memory, but
+running under the FILER.  Less memory would be required if running
+"bare."
+
+	>>>>> This number is for Version 2.1.  It was not re-checked
+	for Version 2.2, but the new number should be very close
+	to this one.
+
+6) Instead of setting the swap area size in freyja.res, you could run
+a DOS shell (MENU S in the FILER) and give this command line:
+
+	freyja -z 40
+
+But this is more work as you have to do it each time.
+
+7) A typical configuration is to put freyja.exe in C:\ and freyja.res
+in C:\_DAT.  To make this work, do:
+
+create or add to config.sys:
+
+	shell=command /p
+
+create or add to autoexec.bat:
+
+	set FREYJADIR=C:\_DAT
+	$SYSMGR
+
+Then reboot.

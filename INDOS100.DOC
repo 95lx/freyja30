@@ -1,0 +1,126 @@
+	   Installation Instructions for HP100LX ("Cougar")
+			    MS/DOS Version
+
+Code Letter: D
+
+Features:
+
+The  version can do anything that the IBM PC version can do.  In
+addition:
+
+	- It supports three screen ZOOM modes.
+	- It uses the HP100LX character set.
+	- The screen handling is set for the HP100's modes
+	- The MENU and blue Fn keys work.
+	- The cursor is set to a block cursor.
+	- Many resource file settings are adjusted for the 100LX.
+
+Note that the program can run from under the FILER or without the
+system manager at all (a "bare" 100LX).
+
+
+------------------------------------------------------------
+ZOOM Modes
+
+Freyja supports three zoom modes.  The ^X + command (and ZOOM key) 
+changes the font among these choices:
+
+	argument	rows x columns
+
+	2		25 x 80
+	80		18 x 64
+	84		16 x 40
+
+With no argument, the command cycles to the next one.  With an
+argument, the command selects that font.
+
+
+------------------------------------------------------------
+Printing:
+
+Freyja prints to the PRN device (as configured into the .res file: see
+the PRINTER* tables).  The program does _not_ perform flow control in
+any fashion, nor does it initialize the port in any way.  That said, I
+believe that MS/DOS _does_ do XON/XOFF flow control with the PRN
+device.
+
+Printing on the HP100LX can therefore be somewhat tricky: you should
+use your favorite method to configure and power on the serial port. 
+
+
+------------------------------------------------------------
+Installation:
+
+1) Obtain an IBM PC version (see inibmpc.doc).  Note that all *.EXE
+files are included with the distribution, so that you don't have to
+compile anything if you just want to run the off-the-shelf versions.
+
+2) Copy the freyja.exe file to somewhere useful in the HP100LX.  You
+can copy all .exe files if you like, but the others were _not_
+compiled with an eye on keeping them small.  You may also choose to
+not copy all of the documentation.
+
+3) If you want to run a standard resource file, do:
+
+	copy indos100.ri <someplace in your search path on the HP100LX>\freyja.ri
+
+(I put this file in the C:\_DAT directory.)
+
+4) You probably want to install the program in the application
+manager.  If so, follow the standard directions in Chapter 5 of the
+100LX manual.  Also:
+
+	- The file freyja.icn in the distribution is an icon for Freyja.
+
+	- If you start the comment line with an upside down ? mark (Fn
+	+ 3), it won't ask for an extra key press when exiting.
+
+5) If you want to make any changes in the resource file, then you will
+want to review these files:
+
+	*.res
+	resource.doc
+	thorres.doc
+
+The mechanics of the change are:
+
+	<edit *.res and make the changes>
+	thorres -c 850 -l en -f d freyja.res -h frres.h
+	copy freyja.ri <someplace in your search path>
+
+Notes:
+
+	- replace the "en" with "dk" if you are using Danish messages
+	- replace the "850" with "437" if you are using code page 437
+	- replace the "850" with "852" if you are using code page 852
+	- replace the "850" with "865" if you are using code page 865
+
+6) The minimum system RAM required is 185K.  This number assumes a 40K
+swap area, and no other applications open or other uses of memory, but
+running from the Application Manager with:
+
+	|185
+
+after the path name.
+
+7) Instead of setting the swap area size in freyja.res, you could run
+a DOS shell (MENU OPTIONS DOS) in the FILER or your other favorite
+method and give this command line:
+
+	freyja -z 40
+
+But this is more work as you have to do it each time.
+
+8) A typical configuration is to put freyja.exe in C:\ and freyja.res
+in C:\_DAT.  To make this work, do:
+
+create or add to config.sys:
+
+	shell=command /p
+
+create or add to autoexec.bat:
+
+	set FREYJADIR=C:\_DAT
+	SYSMGR
+
+Then reboot.

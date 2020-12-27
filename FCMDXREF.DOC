@@ -1,0 +1,121 @@
+		 Freyja Command Cross Reference List
+
+Key Equivalents
+
+	BS	Same as ^H, also BACK SPACE.
+	TAB	Same as ^I.
+	LF	Same as ^J, also LINE FEED (sometimes ENTER).
+	CR	Same as ^M, also CARRIAGE RETURN or RETURN (sometimes ENTER).
+	ESC	Same as ^[, also ESCAPE.
+	DEL	Same as ^?, also DELETE or RUBOUT (obsolete).
+
+Motion
+	Character	^B	^F	LeftArrow	RightArrow
+	Word		Esc B	Esc F	Ctrl-LeftArrow	Ctrl-RightArrow
+	Number		Esc ^B	Esc ^F
+	Line		^A	^E	^N	^P	UpArrow	DownArrow
+	Sentence	Esc A	Esc E
+	Paragraph	Esc [	Esc ]
+	Screen		^V	^Z	^X ^V	^X ^Z	Esc V	PgUp	PgDn
+	Region		^X ^X
+	Buffer		^X B	^X V	Esc <	Esc >	Home	End
+
+Delete / Kill
+	Character	^D	^H	^?(UNIX)	BackArrow	Del
+	Word		^?(MSDOS)	Esc ^H	Esc D	Esc ^?	Ctrl-BackArrow
+	Line		^K	Esc ^K	F2
+	Sentence	^X ^H	^X ^?	Esc K
+	Region		^W	Esc W	Ctrl-F2	Ctrl-F3	COPY	CUT
+	Buffer		^X K	Shift-F5
+	Append		Esc ^W
+	Yank		^Y	Ctrl-F4	PASTE
+	File		^X ^K
+
+Character
+	^B	^D	^F	^H	^T	^?(UNIX)	^X @
+	Ins	Del
+
+Word
+	^C	^?(MSDOS)	Esc ^H	Esc B	Esc C	Esc D	Esc F
+	Esc L	Esc T	Esc U	Esc ^?	Ctrl-BackArrow	Ctrl-LeftArrow
+	Ctrl-RightArrow
+
+Number
+	^X ^A	Esc ^B	Esc ^E	Esc ^F
+
+Line
+	^A	^E	^K	^N	^P	Esc ^K	Esc S	F2
+
+Sentence
+	^X ^H	^X ^?	Esc A	Esc E	Esc K
+
+Paragraph
+	Esc H	Esc [	Esc ]	Esc G	Esc Q
+
+Screen
+	^V	^Z	^X ^V	^X ^Z	Esc V	PgUp	PgDn
+
+Mark / Region
+	^@	^W	^Y	^X ^L	^X ^U	^X ^P	^X ^X	^X ^\
+	^X 7	^X T	^X U	^X [	^X ]	^X {	^X }	Esc ^A
+	Esc ^W	Esc SP	Esc <	Esc >	Esc G	Esc H	Esc W	^7
+	Ctrl-F2	Ctrl-F3	Ctrl-F4	Ctrl-F9	COPY	CUT	PASTE
+
+Buffer / File
+	^X ^B	^X ^D	^X ^F	^X ^I	^X ^K	^X ^R	^X ^S	^X ^W
+	^X B	^X D	^X K	^X P	^X V	Esc <	Esc >	Esc H
+	Esc ~ ^2	^7	F5	F8	Shift-F5	Shift-F8
+	Ctrl-F8
+
+Abort
+	^G	^X ^G	Esc^G
+	either ^G or Esc in prompts
+
+Argument, Quote, & Related
+	^Q	^U	^X 8	^X 9	^X Q
+
+Calculator
+	Esc ^E	Esc ^M	Esc ^U	Esc ^]	F9
+
+Calendar / Time
+	Esc ^C	Esc ^N	Esc ^P	Shift-F9	DATE	TIME
+
+Case
+	^C	^X ^L	^X ^U	Esc C	Esc L	Esc U
+
+Exit / Quit
+	^X ^C	^X C	Shift-F10
+
+Help
+	^X H	^4	^5	^6	F1	Ctrl-F1
+
+Insert
+	^I	^J	^M	^O	^Q	^X 8	^X Q	Ins
+	F4	Ctrl-F10
+
+Keyboard Macro
+	^]	^X (	^X )	^X E	Esc ^]	Esc 0-9	Alt-0 to Alt-9
+
+Menus	^^	^0	F10
+
+Search / Replace
+	^R	^S	Esc ^R	Esc R	F7	Ctrl-F5	Ctrl-F7
+
+Settings
+	^X #	^X +	^X ,	^X -	^X .	^X /	^X =	^X F
+	^X `	^9	ZOOM
+
+System
+	^X ^D	^X ^E	^X ^K	^X D
+
+Twiddle
+	^T	Esc T
+
+Whitespace / Grayspace
+	^\	^X ^\	^X T	^X U	^X [	^X ]	^X {	^X }
+	Esc G	Esc Q	Esc S	Esc \	F3	F4
+
+Window / Display
+	^L	^X ^B	^X #	^X 1	^X 2	^X 3	^X <	^X =
+	^X >	^X @	^X ^D	^X O	^X ^	^X `	Esc ^L	Esc =
+	F6	Shift-F6	Alt-=

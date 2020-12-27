@@ -1,0 +1,315 @@
+		      Freyja Text Editor Overview
+	       (Freyja Reduksjon Emacs, Ytre Jevn All)
+		 (Freyja Reduces Emacs Yet Joins All)
+Version 3.0	Copyright 1991,2,3,4,6 by Craig A. Finseth	1994-09-3
+
+
+	This program is dedicated to my wife, Ann, daughter Kari,
+	and son Kyle, who put up with me spending a *lot* of time on
+	this thing...
+
+Sections:
+
+	What It Is
+	Credits
+	Status
+	Cost
+	Version History
+	How To Obtain a Copy
+	How To Obtain Support
+	Supported Environments
+	Installation
+	Features for International Users
+	File-by-File
+
+-----------------------------------------------------------------
+What It Is
+
+Freyja2 combines the old Freyja and MemUtil releases into a single
+release.
+
+Freyja is an Emacs-type text editor that implements my choice of Emacs
+commands.  It also includes an RPN-calculator and perpetual calendar. 
+It is extensible by changing the source code and recompiling.  While it
+runs on UNIX systems, it is targeted to MS/DOS laptop and palmtop
+machines.
+
+As a text editor, Freyja includes the following features:
+
+	- full range of character, line, word, sentence, and
+	paragraph-oriented commands.
+	- search, replace, and query replace
+	- deletions are automatically saved into a "kill buffer"
+	- ability to edit up to 11 files at once
+	- ability to view two indepenant windows at once
+	- integrated help facility
+	- integrated menu facility
+	- commands to change the case of text, change indentation,
+	and perform many other functions
+	- can record and play back keyboard macros
+	- includes a perpetual calendar
+	- includes a fully-integrated HP-45A type calculator
+	- configurable with a resource file
+	- system-manager compliant version for the HP95LX
+	- the HP95LX version supports tiny fonts that can display up to
+	  25 x 80 characters on the 95's screen
+
+The resource file contains all messages, the command tables, the
+menus, and many configuration parameters.  You can thus alter the
+program's behavior in many ways _without_ having to know or compile C
+code.
+
+MemUtil is a program for displaying and snapshoting memory in the
+HP95LX when the system manager is in operation.  When you first start
+it, you see which applications are available, their hot keys, and
+their status.  As such, it is a handy guide to your system.  However,
+the program can do much more.  It can show you:
+
+	- detailed information about each application
+	- the application's data segment
+	- the MS/DOS memory chains
+	- the contents of any of the MS/DOS chain blocks
+	- arbitrary memory locations
+	- the character set and function keys
+
+In addition, any of these displays can be saved to either the
+clipboard or to a file.  Most of the displays can be saved as either
+human-readable text or in binary form.
+
+The built-in help text serves as the manual.
+
+Also included are a variety of utility programs:
+
+	makeexm converts .exe files to system-manager format .exm
+	moon shows the phase of the moon
+	thorabk converts HP95LX appointment book files to ASCII text
+	thorpbk converts HP95LX phone book files to and from ASCII text
+	thorres compiles the resource file
+
+and several other commands.
+
+International users will find that Freyja supports you in many ways. 
+You will notice that Freyja is release with support for both English
+and Danish (dansk) languages.  The latter is found in the rlangdk.res
+file and has all messages and prompts translated to that language. 
+International support is described fully in the freyja.doc file (near
+the end).
+
+
+-----------------------------------------------------------------
+Credits:
+
+MemUtil:
+
+I would like to credit the authors of "The Wait Group's MS-DOS
+Developer's Guide, Second Edition" for explaining the techniques for
+retrieving the MS/DOS memory chains.
+
+I would like to credit Hewlett-Packard company, and in particular
+Everett Kaser, for explaining the techniques for retrieving the
+application control blocks (in the "what" program).
+
+Freyja2:
+
+I would like to thank Arne Christensen (arc@pine.dk) for providing the
+Danish translations.
+
+The idea for using the resource file was contributed by Graeme Cawsey
+of Tuscan Consultants Ltd, Leeds, UK.  Alas, even though he let me
+badger his code from him, I wound up writing it from scratch.
+
+I would like to thank Dave Goodman for doing the first "tiny font"
+implementation on the HP95LX.
+
+
+-----------------------------------------------------------------
+Status:
+
+With the exception of three files, the entire release is freeware
+distributed under the same terms as GNU CopyLeft.
+
+The files are c0s.asm, makeexm.c, and makeexm.exe.  These files are
+placed wholly in the public domain and anyone, anywhere can use them
+for any purpose in any way.  It is silly to make others have to
+reinvent this particular wheel.  Please use them with my blessings.
+
+
+-----------------------------------------------------------------
+Cost:
+
+Freyja is provided free to anyone (see the later "How to Obtain a
+Copy" section).  However, I would _deeply_ appreciate hearing (at all)
+from you: please send a postcard and, if you like, suggest new
+features!  I would also like to know how you learned abou Freyja and
+how you obtained a copy....
+
+
+-----------------------------------------------------------------
+Version History:
+
+Freyja:
+
+1.1	 3 Aug 1991	first release
+1.2	15 Aug 1991	second release: minor bug fixes in ^C, Esc ^E,
+			Ins, Enter (in calculator) and redisplay;
+			added keyboard switch
+1.3	21 Mar 1992	third release: reworked .ini file reading, fixed
+			minor bugs; ^X ^D now includes hidden files; file
+			I/O can now be unprocessed; all columns of the
+			screen are now used; ^U ^W doesn't save deleted
+			text; removed the date/time stamp command and
+			date time format support; created system-manager
+			compliant versions
+1.4	13 Apr 1992	^X^F now checks for read errors; fixed a bizzarre
+			bug in the system-manager compliant version (forgot
+			to remove a call to malloc/free); fixed buffer
+			deletion bug (now can't delete scratch);
+			file getter now works like other s-m applications;
+			added SBUffer, CTX swap, LANguage, SAVing options
+			to freyja.ini; ^G now cancels menu and file getter
+			(like ESC) in system-manager version; fixed a bug
+			in the Help screen; moved the filename to the end
+			of the status line; fixed a word wrap bug
+1.5	11 May 1992	*RE* fixed the Help screen bug (which also showed
+			up other places and caused cursor-positioning
+			problems; changed ^[ to Esc everywhere; fixed
+			a bug in the 95's file getter; added more languages
+1.6	1 June 1992	added a patching program to remove all fixups from the
+			.exm version; .exm is now linked with MSDOS linker;
+			fixed a bug in deleting buffers; added external
+			command to system manager version; tweaked ^X^W
+			handling of empty names; fixed truncating files (yet
+			again: probably the fixups)
+
+MemUtil:
+
+*EXPERIMENTAL*	11 May 1992	first release
+
+1.0	27 May 1992	many changes and improvements; added aplist
+
+1.1	3 June 1992	changed algorithm used to find Application Task Table
+
+Freyja2:
+
+2.0	25 Feb 1993	first release.  Highlights: combines Freyja and
+			MemUtil, adds thor and moon commands, slight
+			cleanup in MemUtil (Esc stack), rewritten makeexm,
+			add resource file, tiny fonts, menus, printing
+			to Freyja.
+
+2.1	31 Aug 1993	dropped ApList, thormem, and some miscellaneous files;
+			improved language and code page support; reworked
+			terminal support; added fill region, about, and
+			a few other commands, added new menu styles, reworked
+			the command documentation; tinyfont drivers have
+			been completely rewritten and no Dave Goodman
+			code is left; added a few new configuration options;
+			removed some calculator commands (well, something
+			had to go), and many more
+
+2.2	1994-02-17	added code page 852; fixed IPO support; fixed menu
+			help small-screen shifting; added current directory
+			to about screen; added INITMACRO; fixed bug in ^X `;
+			fixed bug with swap areas > 256K; a feature has
+			been added to toggle the PgUp/Dn and Up/Down
+			keys (^X -); new Delete File command; new Save
+			all command; new M-0-9 and Alt-0-9 commands,
+			improved DIRED support with ^X D and bug fixes; added
+			TWIDDRAG; altered MS/DOS long directory format;
+			fixed bug in MS/DOS file completion; fixed bug in
+			menu help on small screens; grew the maximum resource
+			file size to 16K; fixed handling of auto-determined
+			screen type; fixed menu/file getter interaction bug
+			on the 95; Freyja now uses sysmgr calls to allocate
+			memory: works better w/DOS and 1-2-3; MemUtil now
+			displays 100LX tasks; printing of Tabs was broken
+			in 2.1, now fixed; added DEFDIR resource paramter;
+
+2.3	1994-03-17	Fixed FTP file documentation in README;
+			updated the attribute list to look better on a
+			100LX; dropped serial port power support on
+			100/95 DOS versions (needed code space); dropped
+			VT100 function key support from non-Unix versions
+			(needed code space); added Fill Region command
+			to the Layout menu; fixed bug in menu macro key
+			handling; fixed startup typeahead bug; all file
+			prompts now include the current directory; . and
+			.. omitted from file completion list; file
+			completion now works a little better (differently);
+			added MarkAll command to the Edit menu; fixed
+			bug in printing handling FFs
+			
+3.0	1996-09-03	updated contact and availability information
+
+-----------------------------------------------------------------
+How To Obtain a Copy:
+
+Diskette: Send the author blank diskettes:
+
+	- one, 3 1/2" (1.44 MB), or
+	- two, 3 1/2" (720 KB), or
+
+and a SASE or enough stamps to cover return postage plus a dollar or
+so (so that I can buy a diskette mailer).  Or you can just send me
+about US$5.00 in check, stamp, whatever and I will furnish the
+diskette(s) and mailer.  Non-US people can send me four 1.44 MB 3 1/2"
+diskettes in lieu of money.  (More money is always nice, but please
+don't feel obligated in any way.)
+
+Anonymous FTP:
+	ftp://ftp.finseth.com/users/fin/freyja30.exe
+	ftp://eddie.mit.edu/distrib/hp95lx/editors/freyja30.exe
+
+I would _deeply_ appreciate hearing (at all) from you: please send a
+postcard and, if you like, suggest new features!
+
+-----------------------------------------------------------------
+How To Obtain Support:
+
+	Craig Finseth
+	fin@finseth.com
+	http://www.finseth.com/~fin
+	+1 500 448 9440
+
+	1343 Lafond
+	St Paul MN 55104
+	USA
+
+
+-----------------------------------------------------------------
+Supported Environments:
+
+	Tested on SunOs 4.0.3.
+	Should run under most Berkeley Unix environments.
+
+	Tested on MS/DOS V3.x and should run on any MS/DOS version 2.0
+	or later system.  Requires Borland Turbo C Version 2.0 or
+	later to compile (it should compile and run under Microsoft C
+	with only minor changes).
+
+	Tested on HP95LX and HP100LX.
+
+Memory chain routines (thormem and MemUtil's "Chains" item) use DOS
+function 52H in interrupt 21H.  This is an undocumented call.
+
+MemUtil uses an undocumented system manager call to locate the
+application task table on the 95LX.
+
+
+-----------------------------------------------------------------
+Installation:
+
+see:
+	inibmpc.doc	installation for IBM PCs and compatibles
+	indos95.doc	installation for MS/DOS version on HP95LX
+	insys95.doc	installation for system manager version on HP95LX
+	indos100.doc	installation for MS/DOS version on HP100LX
+	insys100.doc	installation for system manager version on HP100LX
+	inunix.doc	installation for Unix systems
+
+
+-----------------------------------------------------------------
+File-by-File:
+
+see:
+	filelist.doc

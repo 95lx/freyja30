@@ -1,0 +1,240 @@
+	   Installation Instructions for HP95LX ("Jaguar")
+		   System Manager Compliant Version
+
+Code Letter: S
+
+Features:
+
+The sysmgr version can do anything that the IBM PC version can do. 
+Mostly.  In addition:
+
+	- It works with 95buddy.
+	- It is fully system-manager compliant.
+	- Application manager calls are used for keyboard input.
+	- It uses the built-in file getter.
+	- You can set the default file pattern to use.
+	- The calculator is not present (the Turbo C floating point libraries
+	use and interrupt in their interface; such use conflicts with sytem
+	manage compliance guidelines).
+	- The execute system command function is present.  However, some
+	MS/DOS commands may invisibly trash your system.
+	- The search path for FREYAJ.RI and the help files is forced to
+	include C:\_DAT.
+	- Several resource file settings allow you to make the program
+	behave a lot like MEMO.
+	- It supports the tiny font technology.
+	- It uses the HP95LX character set.
+	- The screen handling is set for the HP95's modes
+	- The MENU key works.
+	- The cursor is set to a block cursor.
+	- Many resource file settings are adjusted for the 95LX.
+
+
+------------------------------------------------------------
+MEMO:
+
+Freyja includes all functionality of the built-in MEMO program. This
+means that if MEMO can do it, so can Freyja.  However, the commands
+may be a little different.  In particular:
+
+- The base MEMO function keys are Ctrl- function keys in Freyja.
+- You can make the word-motion and Home/End key commands work like
+  MEMO's by changing these freyja.res file options to:
+
+	WORDEND		"N"
+	HOMEEND		"Y"
+
+- The menus are organized differently.  No, I'm not going to try to
+list the differences.
+
+Of course, Freyja can do many things that MEMO cannot.
+
+Many people simply put Freyja on the MEMO key.  In fact, 95BUDDY has
+special support for doing just this.
+
+Freyja can read and write MEMO's  file.  When doing this, be sure that
+Freyjs is in Wrap mode.
+
+
+------------------------------------------------------------
+Tiny Fonts:
+
+Freyja supports Dave Goodman's Tiny Font technology.  The ^X + command
+changes the font among these choices:
+
+	arg.	display mode	rows x columns		character size
+
+	24	normal text	16 x 40
+	25	graphics	21 x 60			6 x 4
+	26	graphics	25 x 80			5 x 3
+
+With no argument, the command cycles to the next one.  With an
+argument (under "arg."), the command selects that font.  All graphics
+fonts use the same 6 x 4 character bitmap: the difference is in how
+may pixels and scan lines are shown.
+
+The font is defined in the .res file.
+
+The program automatically switches to font 0 when changing
+applications and invoking the file getter.  Thus, while the font
+selections are available on menus, you probably will wind up using the
+^X + command.
+
+Yes, all the font manipulation is written in C.
+
+If you want to bring Freyja up in font 25 or 26, do _not_ set the
+SCRNTYPE paramter.  It doesn't work.  Instead, use INIT macro with
+one of these sequences:
+
+	^U25^X+y
+	^U26^X+y
+
+
+------------------------------------------------------------
+Clipboard:
+
+The program will copy, cut, and paste to and from the clipboard.  Note
+that the program distinguishes between the clipboard and the kill
+buffer: they are _not_ synonymous nor are any automatic conversions
+between them performed.
+
+Commands that use the kill buffer:
+
+	^W	cut
+	^[ W	copy
+	^Y	paste
+	all deletion commands
+	Edit menu
+
+Commands that use the clipboard:
+
+	Ctrl-F2	copy
+	Ctrl-F3	cut
+	Ctrl-F4	paste
+	Clip menu
+
+
+------------------------------------------------------------
+Printing:
+
+Freyja prints to the PRN device (as configured into the .res file: see
+the PRINTER* tables).  The program does _not_ perform flow control in
+any fashion, nor does it initialize the port in any way.  That said, I
+believe that MS/DOS _does_ do XON/XOFF flow control with the PRN
+device.
+
+Printing on the HP95LX can therefore be somewhat tricky: you should
+use your favorite method to configure and power on the serial port. 
+
+
+------------------------------------------------------------
+95BUDDY:
+
+Freyja works well with 95BUDDY version 3.1.  This operation is due to
+the effort of Jeffrey Mattox (95BUDDY's author) and myself.
+
+No special 95BUDDY configuration is required.  However, if you leave
+the default cursor, it looks silly.  Try cursor=0.
+
+
+------------------------------------------------------------
+Installation:
+
+1) Obtain an IBM PC version (see ibmpc.doc).  Note that all *.EXM
+files are included with the distribution, so that you don't have to
+compile anything if you just want to run the off-the-shelf versions.
+
+You can run any of the .EXE files on the HP95LX.  They all run under
+MS/DOS mode.  These instructions only discuss the .EXM files.
+
+2) Copy the freyja.exm file and the memutil.exm file to somewhere
+useful in the HP95LX, quite probably C:\_DAT.
+
+You can install the documentation if you like.
+
+3) If you want to run a standard resource file, do:
+
+	copy insys95.ri c:\_dat\freyja.ri
+
+If you want to make any changes in the resource file, then you will
+want to review these files:
+
+	*.res
+	resource.doc
+	thorres.doc
+
+The mechanics of the change are:
+
+	<edit *.res and make the changes>
+	thorres -c 850 -l en -f s freyja.res -h frres.h
+	copy freyja.ri c:\_dat
+
+Notes:
+
+	- replace the "en" with "dk" if you are using Danish messages
+	- replace the "850" with "852" if you are using code page 852
+	- replace the "850" with "865" if you are using code page 865
+
+4) The minimum system RAM required is 250K.  This number assumes a 40K
+swap area, and no other applications open or other uses of memory.
+
+	>>>>> This number is for Version 2.1.  It was not re-checked
+	for Version 2.2, but the new number should be very close
+	to this one.
+
+5) Create or add to your C:\_DAT\APNAME.LST file.  Here is an example
+entry that uses the Alt-MEMO key:
+
+	C:\_DAT\FREYJA.EXM,bb00,Freyja^M
+
+Or, if you are like me:
+
+	C:\_DAT\FREYJA.EXM,b800,Freyja^M
+
+And thus override the built-in MEMO function.  Here is my entry for
+MemUtil (you probably only want to install one of these):
+
+	C:\_DAT\MEMUTIL.EXM,3200,MemUtil^M
+
+This scan code designates Alt-M.
+
+The first field if the full pathname of the .EXM file.  It must be in
+upper case, and the drive letter (e.g. "C:") must be the same drive as
+the APNAME.LST file.  The second field is the scan code of the hot
+key.  The third field is the name.  The whole thing is terminated by a
+Carriage Return.
+
+	key		base	w/Ctrl	w/Alt
+
+	FILER		a800	ae00	ab00
+	COMM		ac00	b200	af00
+	APPT		b000	b600	b300
+	PHONE		b400	ba00	b700
+	MEMO		b800	be00	bb00
+	123		bc00	c200	bf00
+	CALC		c000	c600	c300
+
+Don't forget to reboot the HP95LX.
+
+
+6) The program can't display error messages until it gets going.  If
+it can't get started, it might be for one of these reasons:
+
+	- it cannot find or read the resource file (freyja.ri not in
+	C:\_DAT or in the search path)
+
+	- it cannot allocate the swap area (too large or Lotus 1-2-3 running)
+
+	- it cannot initialize the terminal (broken or wrong freyja.ri file)
+
+7) If you want to recompile the program, you will need to edit the
+initial symbol definition blocks in the makefile (this sounds more
+complicated than it is).  Comment out the ones for the IBM PC version
+and remove the comments from the ones for the system manager version. 
+Then do:
+
+	erase f*.obj
+	erase smjaguar.obj
+
+and recompile everything.  Reverse this process -- including the erase
+f*.obj -- when switching back to the IBM PC version.
